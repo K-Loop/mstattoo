@@ -1,0 +1,124 @@
+@import "tailwindcss";
+
+@theme {
+  --font-serif: 'Cormorant Garamond', Georgia, serif;
+  --font-cinzel: 'Cinzel', serif;
+  --font-italiana: 'Italiana', serif;
+  --font-playfair: 'Playfair Display', Georgia, serif;
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-mono: 'Space Grotesk', monospace, sans-serif;
+  --font-display: 'Syne', sans-serif;
+
+  --color-atelier-bg: #09090b;
+  --color-atelier-card: #121216;
+  --color-atelier-surface: #18181f;
+  --color-atelier-elevated: #1e1e26;
+  --color-atelier-gold: #c5a880;
+  --color-atelier-gold-bright: #d4af37;
+  --color-atelier-gold-dark: #8a7249;
+  --color-atelier-text-primary: #e5e3dc;
+  --color-atelier-text-muted: #888780;
+  --color-atelier-border: #22222a;
+  --color-atelier-border-gold: rgba(197, 168, 128, 0.25);
+}
+
+/* Typography Helpers */
+.font-cinzel {
+  font-family: 'Cinzel', serif;
+}
+
+.font-cormorant {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+}
+
+.font-italiana {
+  font-family: 'Italiana', serif;
+}
+
+.font-playfair {
+  font-family: 'Playfair Display', Georgia, serif;
+}
+
+.font-sans-modern {
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+}
+
+.font-mono-tech {
+  font-family: 'Space Grotesk', monospace;
+}
+
+.font-display {
+  font-family: 'Syne', sans-serif;
+}
+
+/* Wide Editorial Letter Spacing */
+.tracking-ultra {
+  letter-spacing: 0.28em;
+}
+
+.tracking-widest-plus {
+  letter-spacing: 0.2em;
+}
+
+.tracking-wide-plus {
+  letter-spacing: 0.12em;
+}
+
+/* Custom Minimal Dark Scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: #09090b;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #26252b;
+  border-radius: 2px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #c5a880;
+}
+
+/* Selection */
+::selection {
+  background-color: #c5a880;
+  color: #09090b;
+}
+
+/* Smooth Focus Rings */
+*:focus-visible {
+  outline: 1px solid #c5a880;
+  outline-offset: 2px;
+}
+
+/* Custom Card & Image Utility */
+.atelier-card {
+  background: #111115;
+  border: 1px solid #202028;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.atelier-card:hover {
+  border-color: rgba(197, 168, 128, 0.45);
+}
+
+.gold-glow {
+  box-shadow: 0 0 25px -5px rgba(197, 168, 128, 0.2);
+}
+
+.subtle-border {
+  border: 1px solid #1f1f26;
+}
+
+.gold-border {
+  border: 1px solid rgba(197, 168, 128, 0.35);
+}
+
+/* Smooth transitions */
+html {
+  color-scheme: dark;
+}
