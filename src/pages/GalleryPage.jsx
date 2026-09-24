@@ -86,8 +86,15 @@ export default function GalleryPage() {
           </div>
         </div>
 
-        {/* Category Navigation Bar */}
-        <div className="flex items-center overflow-x-auto pb-4 mb-16 border-b border-[#22222a] scrollbar-none gap-3 sm:gap-4">
+        {/* Category Navigation Bar with mouse-wheel & drag scroll support */}
+        <div 
+          onWheel={(e) => {
+            if (e.deltaY !== 0) {
+              e.currentTarget.scrollLeft += e.deltaY;
+            }
+          }}
+          className="flex items-center overflow-x-auto pb-4 mb-16 border-b border-[#22222a] scrollbar-thin scrollbar-thumb-[#26252b] scrollbar-track-transparent gap-3 sm:gap-4 select-none"
+        >
           {GALLERY_CATEGORIES.map((cat) => {
             const count =
               cat.id === 'all'
@@ -102,7 +109,7 @@ export default function GalleryPage() {
               <button
                 key={cat.id}
                 onClick={() => setActiveFilter(cat.id)}
-                className={`px-5 py-3 text-xs sm:text-sm tracking-[0.18em] uppercase font-mono-tech border transition-all whitespace-nowrap cursor-pointer flex items-center gap-2 ${
+                className={`px-5 py-3 text-xs sm:text-sm tracking-[0.18em] uppercase font-mono-tech border transition-all whitespace-nowrap cursor-pointer flex items-center gap-2 shrink-0 ${
                   isActive
                     ? 'bg-[#181820] text-[#c5a880] border-[#c5a880] font-semibold shadow-lg shadow-[#c5a880]/10'
                     : 'bg-[#0e0e12] text-[#888780] border-[#22222a] hover:text-[#F7F6F2]'

@@ -39,29 +39,29 @@ export default function Navbar() {
   return (
     <>
       <header
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-400 ${
           scrolled
-            ? 'bg-[#09090b]/95 backdrop-blur-md border-b border-[#22222a] py-4 shadow-2xl shadow-black/60'
-            : 'bg-transparent border-b border-white/5 py-6'
+            ? 'bg-[#09090b]/95 backdrop-blur-md border-b border-[#22222a] py-2.5 sm:py-3 shadow-2xl shadow-black/60'
+            : 'bg-transparent border-b border-white/5 py-3.5 sm:py-4'
         }`}
       >
-        <div className="w-full max-w-[94vw] xl:max-w-[92vw] 2xl:max-w-[1880px] mx-auto px-4 sm:px-8 lg:px-12 flex items-center justify-between">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
           {/* Brand Logo */}
           <Link
             to="/"
             onClick={() => setMobileMenuOpen(false)}
             className="group flex flex-col"
           >
-            <span className="font-cinzel text-lg sm:text-xl lg:text-2xl tracking-[0.18em] text-[#F7F6F2] group-hover:text-[#c5a880] transition-colors uppercase font-medium">
+            <span className="font-cinzel text-base sm:text-lg lg:text-xl tracking-[0.15em] text-[#F7F6F2] group-hover:text-[#c5a880] transition-colors uppercase font-medium">
               {STUDIO_INFO.brand}
             </span>
-            <span className="text-xs tracking-[0.25em] text-[#c5a880] uppercase font-mono-tech mt-0.5">
+            <span className="text-[10px] sm:text-[11px] tracking-[0.22em] text-[#c5a880] uppercase font-mono-tech mt-0.5">
               FINE ART & ACADEMY
             </span>
           </Link>
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden md:flex items-center space-x-7 lg:space-x-10">
+          <nav className="hidden md:flex items-center space-x-6 lg:space-x-8">
             {navLinks.map((link) => {
               const isActive =
                 link.path === '/'
@@ -72,7 +72,7 @@ export default function Navbar() {
                 <Link
                   key={link.name}
                   to={link.path}
-                  className={`text-sm lg:text-[15px] tracking-[0.2em] transition-all duration-300 relative py-1 font-mono-tech ${
+                  className={`text-xs lg:text-[13px] tracking-[0.16em] transition-all duration-300 relative py-1 font-mono-tech ${
                     isActive
                       ? 'text-[#c5a880] font-semibold'
                       : 'text-[#a3a299] hover:text-[#F7F6F2]'
@@ -82,7 +82,7 @@ export default function Navbar() {
                   {isActive && (
                     <motion.div
                       layoutId="activeNavLine"
-                      className="absolute -bottom-1.5 left-0 right-0 h-[2px] bg-[#c5a880]"
+                      className="absolute -bottom-1 left-0 right-0 h-[2px] bg-[#c5a880]"
                       transition={{ type: 'spring', stiffness: 350, damping: 30 }}
                     />
                   )}
@@ -96,7 +96,7 @@ export default function Navbar() {
             <button
               type="button"
               onClick={handleBookNow}
-              className="inline-flex items-center justify-center px-6 py-3 text-xs lg:text-sm tracking-[0.2em] font-semibold uppercase text-[#09090b] bg-[#c5a880] hover:bg-[#d4af37] transition-all duration-300 font-mono-tech shadow-md shadow-[#c5a880]/10 cursor-pointer"
+              className="inline-flex items-center justify-center px-4 sm:px-5 py-2 sm:py-2.5 text-xs tracking-[0.16em] font-semibold uppercase text-[#09090b] bg-[#c5a880] hover:bg-[#d4af37] transition-all duration-300 font-mono-tech shadow-md shadow-[#c5a880]/10 cursor-pointer"
             >
               BOOK NOW
             </button>
@@ -105,21 +105,21 @@ export default function Navbar() {
           {/* Mobile Hamburger Button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden flex flex-col justify-center items-center w-10 h-10 space-y-1.5 focus:outline-none text-[#F7F6F2] cursor-pointer"
+            className="md:hidden flex flex-col justify-center items-center w-9 h-9 space-y-1.5 focus:outline-none text-[#F7F6F2] cursor-pointer"
             aria-label="Toggle Navigation Menu"
           >
             <span
-              className={`block w-6 h-[2px] bg-current transition-transform duration-300 ${
+              className={`block w-5 h-[2px] bg-current transition-transform duration-300 ${
                 mobileMenuOpen ? 'rotate-45 translate-y-2 text-[#c5a880]' : ''
               }`}
             />
             <span
-              className={`block w-6 h-[2px] bg-current transition-opacity duration-300 ${
+              className={`block w-5 h-[2px] bg-current transition-opacity duration-300 ${
                 mobileMenuOpen ? 'opacity-0' : 'opacity-100'
               }`}
             />
             <span
-              className={`block w-6 h-[2px] bg-current transition-transform duration-300 ${
+              className={`block w-5 h-[2px] bg-current transition-transform duration-300 ${
                 mobileMenuOpen ? '-rotate-45 -translate-y-2 text-[#c5a880]' : ''
               }`}
             />

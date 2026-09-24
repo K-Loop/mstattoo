@@ -118,7 +118,62 @@
   border: 1px solid rgba(197, 168, 128, 0.35);
 }
 
-/* Smooth transitions */
+/* Global Responsive Root Scaling (Calibrated for 100% Default Browser Zoom) */
 html {
   color-scheme: dark;
+  scroll-behavior: smooth;
+  font-size: 14px;
+}
+
+@media (min-width: 1024px) {
+  html {
+    font-size: 14.5px;
+  }
+}
+
+@media (min-width: 1280px) {
+  html {
+    font-size: 15px;
+  }
+}
+
+@media (min-width: 1536px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 640px) {
+  html {
+    font-size: 13.5px;
+  }
+}
+
+body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+/* Custom Cursor Rules (Desktop fine pointers only) */
+@media (hover: hover) and (pointer: fine) {
+  body, button, a, input, select, textarea, [role="button"], .cursor-pointer {
+    cursor: none !important;
+  }
+}
+
+/* Ambient Glow Gentle Drift Animation */
+@keyframes ambientDrift {
+  0% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  50% {
+    transform: translate(12px, 8px) scale(1.03);
+  }
+  100% {
+    transform: translate(-8px, 12px) scale(0.98);
+  }
+}
+
+.animate-ambient-drift {
+  animation: ambientDrift 20s ease-in-out infinite alternate;
 }
