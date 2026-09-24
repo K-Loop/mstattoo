@@ -161,6 +161,87 @@ body {
   }
 }
 
+/* Atmospheric Four-Corner Golden Sunlight Subtle Breathing Animations */
+@keyframes sunlightDriftTL {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.85;
+  }
+  50% {
+    transform: translate3d(14px, 10px, 0) scale(1.04);
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(-8px, 6px, 0) scale(0.97);
+    opacity: 0.82;
+  }
+}
+
+@keyframes sunlightDriftTR {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.85;
+  }
+  50% {
+    transform: translate3d(-14px, 12px, 0) scale(1.04);
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(8px, 6px, 0) scale(0.97);
+    opacity: 0.82;
+  }
+}
+
+@keyframes sunlightDriftBL {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: translate3d(12px, -12px, 0) scale(1.03);
+    opacity: 0.95;
+  }
+  100% {
+    transform: translate3d(-6px, -8px, 0) scale(0.98);
+    opacity: 0.78;
+  }
+}
+
+@keyframes sunlightDriftBR {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: translate3d(-12px, -12px, 0) scale(1.03);
+    opacity: 0.95;
+  }
+  100% {
+    transform: translate3d(6px, -8px, 0) scale(0.98);
+    opacity: 0.78;
+  }
+}
+
+.animate-sunlight-drift-tl {
+  animation: sunlightDriftTL 18s ease-in-out infinite alternate;
+  will-change: transform, opacity;
+}
+
+.animate-sunlight-drift-tr {
+  animation: sunlightDriftTR 22s ease-in-out infinite alternate;
+  will-change: transform, opacity;
+}
+
+.animate-sunlight-drift-bl {
+  animation: sunlightDriftBL 20s ease-in-out infinite alternate;
+  will-change: transform, opacity;
+}
+
+.animate-sunlight-drift-br {
+  animation: sunlightDriftBR 24s ease-in-out infinite alternate;
+  will-change: transform, opacity;
+}
+
 /* Ambient Glow Gentle Drift Animation */
 @keyframes ambientDrift {
   0% {

@@ -1,11 +1,35 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GALLERY_MEDIA, GALLERY_CATEGORIES } from '../data/galleryData';
+import CornerGlowContainer from '../components/common/CornerGlowContainer';
 
 export default function GalleryPage() {
-  const [activeFilter, setActiveFilter] = useState('all');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const categoryParam = searchParams.get('category');
+  const idParam = searchParams.get('id');
+
+  const [activeFilter, setActiveFilter] = useState(categoryParam || 'all');
   const [selectedItemIndex, setSelectedItemIndex] = useState(null);
   const [visibleCount, setVisibleCount] = useState(24);
+
+  // Sync category param if URL changes
+  useEffect(() => {
+    if (categoryParam) {
+      setActiveFilter(categoryParam);
+    }
+  }, [categoryParam]);
+
+  // Sync specific item ID if provided in URL
+  useEffect(() => {
+    if (idParam) {
+      const foundIdx = filteredItems.findIndex((item) => item.id === idParam);
+      if (foundIdx !== -1) {
+        setSelectedItemIndex(foundIdx);
+      }
+    }
+  }, [idParam]);
 
   // Filter items
   const filteredItems =
@@ -108,7 +132,14 @@ export default function GalleryPage() {
             return (
               <button
                 key={cat.id}
-                onClick={() => setActiveFilter(cat.id)}
+                onClick={() => {
+                  setActiveFilter(cat.id);
+                  if (cat.id === 'all') {
+                    setSearchParams({});
+                  } else {
+                    setSearchParams({ category: cat.id });
+                  }
+                }}
                 className={`px-5 py-3 text-xs sm:text-sm tracking-[0.18em] uppercase font-mono-tech border transition-all whitespace-nowrap cursor-pointer flex items-center gap-2 shrink-0 ${
                   isActive
                     ? 'bg-[#181820] text-[#c5a880] border-[#c5a880] font-semibold shadow-lg shadow-[#c5a880]/10'
@@ -134,57 +165,62 @@ export default function GalleryPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: (idx % 12) * 0.04 }}
-              onClick={() => setSelectedItemIndex(idx)}
-              className="group cursor-pointer bg-[#111115] border border-[#22222a] hover:border-[#c5a880]/70 transition-all duration-500 overflow-hidden shadow-xl flex flex-col justify-between"
+              className="h-full"
             >
-              {/* Media Container */}
-              <div className="relative h-76 sm:h-84 md:h-90 overflow-hidden bg-[#0a0a0c]">
-                {item.type === 'video' ? (
-                  <div className="w-full h-full relative">
+              <CornerGlowContainer
+                onClick={() => setSelectedItemIndex(idx)}
+                dataCursor="view"
+                className="h-full bg-[#111115] border border-[#22222a] hover:border-[#c5a880]/70 transition-all duration-500 shadow-xl flex flex-col justify-between"
+              >
+                {/* Media Container */}
+                <div className="relative h-76 sm:h-84 md:h-90 overflow-hidden bg-[#0a0a0c]">
+                  {item.type === 'video' ? (
+                    <div className="w-full h-full relative">
+                      <img
+                        src={item.poster}
+                        alt={item.title}
+                        className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
+                        loading="lazy"
+                      />
+                      {/* Play Badge */}
+                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center group-hover:bg-black/20 transition-colors">
+                        <div className="w-14 h-14 rounded-full bg-[#c5a880] text-[#09090b] flex items-center justify-center pl-1 shadow-2xl group-hover:scale-110 transition-transform">
+                          ▶
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
                     <img
-                      src={item.poster}
+                      src={item.src}
                       alt={item.title}
                       className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
                       loading="lazy"
                     />
-                    {/* Play Badge */}
-                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center group-hover:bg-black/20 transition-colors">
-                      <div className="w-14 h-14 rounded-full bg-[#c5a880] text-[#09090b] flex items-center justify-center pl-1 shadow-2xl group-hover:scale-110 transition-transform">
-                        ▶
-                      </div>
-                    </div>
+                  )}
+
+                  {/* Category Badge */}
+                  <div className="absolute top-4 left-4">
+                    <span className="text-[10px] tracking-[0.2em] text-[#c5a880] uppercase bg-[#09090b]/90 px-3 py-1 border border-[#c5a880]/30 font-mono-tech">
+                      {item.categoryName || item.category}
+                    </span>
                   </div>
-                ) : (
-                  <img
-                    src={item.src}
-                    alt={item.title}
-                    className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
-                    loading="lazy"
-                  />
-                )}
-
-                {/* Category Badge */}
-                <div className="absolute top-4 left-4">
-                  <span className="text-[10px] tracking-[0.2em] text-[#c5a880] uppercase bg-[#09090b]/90 px-3 py-1 border border-[#c5a880]/30 font-mono-tech">
-                    {item.categoryName || item.category}
-                  </span>
                 </div>
-              </div>
 
-              {/* Card Meta Content */}
-              <div className="p-6 space-y-2">
-                <h3 className="font-cinzel text-xl sm:text-2xl text-[#F7F6F2] font-normal group-hover:text-[#c5a880] transition-colors leading-snug">
-                  {item.title}
-                </h3>
-                <p className="text-sm text-[#a3a299] font-light">
-                  {item.medium}
-                </p>
-                {item.fee && (
-                  <span className="text-xs text-[#c5a880] font-mono-tech font-semibold block pt-1">
-                    {item.fee}
-                  </span>
-                )}
-              </div>
+                {/* Card Meta Content */}
+                <div className="p-6 space-y-2">
+                  <h3 className="font-cinzel text-xl sm:text-2xl text-[#F7F6F2] font-normal group-hover:text-[#c5a880] transition-colors leading-snug">
+                    {item.title}
+                  </h3>
+                  <p className="text-sm text-[#a3a299] font-light">
+                    {item.medium}
+                  </p>
+                  {item.fee && (
+                    <span className="text-xs text-[#c5a880] font-mono-tech font-semibold block pt-1">
+                      {item.fee}
+                    </span>
+                  )}
+                </div>
+              </CornerGlowContainer>
             </motion.div>
           ))}
         </motion.div>
@@ -304,12 +340,12 @@ export default function GalleryPage() {
                 </div>
 
                 <div className="pt-4 border-t border-[#22222a] space-y-3">
-                  <a
-                    href="/contact"
+                  <Link
+                    to="/contact"
                     className="block w-full py-4 text-center text-sm tracking-[0.2em] font-semibold uppercase text-[#09090b] bg-[#c5a880] hover:bg-[#d4af37] transition-all font-mono-tech shadow-lg"
                   >
                     INQUIRE / COMMISSION
-                  </a>
+                  </Link>
                   <div className="text-center text-[10px] tracking-widest text-[#888780] font-mono-tech uppercase">
                     USE ARROW KEYS ‹ › TO BROWSE
                   </div>

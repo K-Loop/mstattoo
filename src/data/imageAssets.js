@@ -13,17 +13,17 @@ export const imageAssets = {
     crystal: "/artworks/crystal-01.jpg",
   },
   pillars: {
-    tattoo: "/artworks/specialty-07.jpg",
+    tattoo: "/tattoos/WhatsApp Image 2026-09-24 at 3.38.07 PM (1).jpeg",
     artwork: "/artworks/pencil-01.jpg",
     academy: "/artworks/acrylic-01.jpg",
   },
   tattooStyles: {
-    fineLine: "/artworks/pencil-08.jpg",
-    blackGrey: "/artworks/pencil-02.jpg",
-    portrait: "/artworks/pencil-04.jpg",
-    geometric: "/artworks/specialty-07.jpg",
-    custom: "/artworks/specialty-01.jpg",
-    coverup: "/artworks/pencil-03.jpg",
+    fineLine: "/tattoos/WhatsApp Image 2026-09-24 at 3.38.06 PM.jpeg",
+    blackGrey: "/tattoos/WhatsApp Image 2026-09-24 at 3.38.06 PM (1).jpeg",
+    portrait: "/tattoos/WhatsApp Image 2026-09-24 at 3.38.07 PM (2).jpeg",
+    geometric: "/tattoos/WhatsApp Image 2026-09-24 at 3.38.06 PM (2).jpeg",
+    custom: "/tattoos/WhatsApp Image 2026-09-24 at 3.38.05 PM.jpeg",
+    coverup: "/tattoos/WhatsApp Image 2026-09-24 at 3.38.07 PM.jpeg",
   },
   artworkDisciplines: {
     graphite: "/artworks/pencil-01.jpg",
@@ -37,7 +37,7 @@ export const imageAssets = {
   academy: {
     workshop: "/artworks/acrylic-02.jpg",
     portraitClass: "/artworks/pencil-01.jpg",
-    tattooApprentice: "/artworks/specialty-07.jpg",
+    tattooApprentice: "/tattoos/WhatsApp Image 2026-09-24 at 3.38.07 PM (1).jpeg",
     masterclass: "/artworks/pencil-04.jpg",
   },
   gallery: [
@@ -60,7 +60,7 @@ export const imageAssets = {
       title: "Custom Anatomical Ink Study",
       medium: "Custom Anatomical Ink Composition",
       category: "tattoos",
-      image: "/artworks/specialty-07.jpg",
+      image: "/tattoos/WhatsApp Image 2026-09-24 at 3.38.05 PM.jpeg",
     },
     {
       id: "gal-4",

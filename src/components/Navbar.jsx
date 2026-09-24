@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { STUDIO_INFO } from '../data/msTattooData';
+import { FiSettings } from 'react-icons/fi';
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -100,6 +101,19 @@ export default function Navbar() {
             >
               BOOK NOW
             </button>
+
+            {/* Admin Icon */}
+            <Link
+              to="/admin"
+              title="Admin Portal"
+              className={`p-2 border transition-all duration-300 ${
+                location.pathname === '/admin'
+                  ? 'border-[#c5a880] text-[#c5a880] bg-[#c5a880]/10'
+                  : 'border-[#2a2a32] text-[#666660] hover:border-[#c5a880]/60 hover:text-[#c5a880]'
+              }`}
+            >
+              <FiSettings className="w-3.5 h-3.5" />
+            </Link>
           </div>
 
           {/* Mobile Hamburger Button */}
@@ -173,6 +187,16 @@ export default function Navbar() {
               >
                 BOOK NOW
               </button>
+
+              {/* Mobile Admin Link */}
+              <Link
+                to="/admin"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center justify-center gap-2 w-full py-3 text-xs tracking-[0.2em] uppercase font-mono-tech border border-[#2a2a32] text-[#888780] hover:border-[#c5a880]/50 hover:text-[#c5a880] transition-all"
+              >
+                <FiSettings className="w-3.5 h-3.5" />
+                ADMIN PORTAL
+              </Link>
               <p className="text-xs tracking-widest text-[#888780] text-center uppercase">
                 {STUDIO_INFO.schedule} • {STUDIO_INFO.workingDays}
               </p>

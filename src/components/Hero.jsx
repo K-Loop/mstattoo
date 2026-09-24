@@ -1,8 +1,11 @@
 import React, { useEffect, useRef } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { HERO_DATA, STUDIO_INFO } from '../data/msTattooData';
+import CornerGlowContainer from './common/CornerGlowContainer';
 
 export default function Hero() {
+  const navigate = useNavigate();
   const imageRef = useRef(null);
   const badgeRef = useRef(null);
   const heroRef = useRef(null);
@@ -148,62 +151,67 @@ export default function Hero() {
               variants={itemVariants}
               className="pt-2 sm:pt-3 flex flex-wrap items-center gap-4 sm:gap-6 font-mono-tech"
             >
-              <a
-                href="#booking"
+              <Link
+                to="/contact"
                 className="inline-flex items-center justify-center px-7 py-3.5 text-xs sm:text-sm tracking-[0.2em] font-semibold uppercase text-[#09090b] bg-[#c5a880] hover:bg-[#d4af37] transition-all duration-300 shadow-xl shadow-[#c5a880]/15 group cursor-pointer"
               >
                 <span>BOOK NOW</span>
                 <span className="ml-2.5 transform group-hover:translate-x-1.5 transition-transform duration-300">→</span>
-              </a>
+              </Link>
 
-              <a
-                href="#tattoo"
+              <Link
+                to="/gallery"
                 className="inline-flex items-center justify-center px-6 py-3.5 text-xs sm:text-sm tracking-[0.2em] font-medium uppercase text-[#F7F6F2] border border-[#33333f] hover:border-[#c5a880] hover:text-[#c5a880] bg-[#111115]/80 transition-all duration-300 cursor-pointer"
               >
                 VIEW WORK
-              </a>
+              </Link>
 
-              <a
-                href="#academy"
+              <Link
+                to="/classes"
                 className="inline-flex items-center text-xs sm:text-sm tracking-[0.2em] text-[#a3a299] hover:text-[#c5a880] uppercase transition-colors py-2 font-medium cursor-pointer"
               >
                 JOIN A CLASS →
-              </a>
+              </Link>
             </motion.div>
 
           </div>
 
-          {/* Right Column: Full-Height Cinematic Image Plate with Parallax */}
+          {/* Right Column: Full-Height Cinematic Image Plate with Parallax & 4-Corner Golden Glow */}
           <motion.div
             variants={itemVariants}
             className="lg:col-span-6 xl:col-span-6 w-full flex justify-end"
           >
             <div
               ref={imageRef}
-              data-cursor="view"
-              className="relative w-full h-[340px] sm:h-[420px] md:h-[480px] lg:h-[500px] xl:h-[560px] max-h-[60vh] overflow-hidden border border-[#22222a] bg-[#111115] shadow-2xl group cursor-pointer will-change-transform"
+              className="w-full will-change-transform"
             >
-              <img
-                src={HERO_DATA.heroImage}
-                alt="MS Tattoo & Fine Art Atelier"
-                className="w-full h-full object-cover object-center group-hover:scale-[1.03] transition-transform duration-700 ease-out"
-                loading="eager"
-              />
-
-              {/* Seamless Dark Edge Fades */}
-              <div className="absolute inset-0 bg-gradient-to-t from-[#09090b] via-[#09090b]/20 to-transparent opacity-80 pointer-events-none" />
-              <div className="absolute inset-0 bg-gradient-to-r from-[#09090b]/40 via-transparent to-[#09090b]/40 pointer-events-none" />
-
-              {/* Parallax Decorative Atelier Badge */}
-              <div
-                ref={badgeRef}
-                className="absolute bottom-5 left-5 z-10 will-change-transform pointer-events-none"
+              <CornerGlowContainer
+                onClick={() => navigate('/gallery')}
+                dataCursor="view"
+                className="w-full h-[340px] sm:h-[420px] md:h-[480px] lg:h-[500px] xl:h-[560px] max-h-[60vh] border border-[#22222a] bg-[#111115] shadow-2xl"
               >
-                <span className="text-xs tracking-[0.25em] text-[#c5a880] uppercase bg-[#09090b]/90 backdrop-blur-sm px-4 py-2 border border-[#c5a880]/30 font-mono-tech flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-[#c5a880] animate-pulse" />
-                  MASTER CRAFTSMANSHIP & ATELIER
-                </span>
-              </div>
+                <img
+                  src={HERO_DATA.heroImage}
+                  alt="MS Tattoo & Fine Art Atelier"
+                  className="w-full h-full object-cover object-center group-hover:scale-[1.03] transition-transform duration-700 ease-out"
+                  loading="eager"
+                />
+
+                {/* Seamless Dark Edge Fades */}
+                <div className="absolute inset-0 bg-gradient-to-t from-[#09090b] via-[#09090b]/20 to-transparent opacity-80 pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-r from-[#09090b]/40 via-transparent to-[#09090b]/40 pointer-events-none" />
+
+                {/* Parallax Decorative Atelier Badge */}
+                <div
+                  ref={badgeRef}
+                  className="absolute bottom-5 left-5 z-20 will-change-transform pointer-events-none"
+                >
+                  <span className="text-xs tracking-[0.25em] text-[#c5a880] uppercase bg-[#09090b]/90 backdrop-blur-sm px-4 py-2 border border-[#c5a880]/30 font-mono-tech flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-[#c5a880] animate-pulse" />
+                    MASTER CRAFTSMANSHIP & ATELIER
+                  </span>
+                </div>
+              </CornerGlowContainer>
             </div>
           </motion.div>
 

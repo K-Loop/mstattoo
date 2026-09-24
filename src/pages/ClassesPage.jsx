@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ACADEMY_COURSES, STUDIO_INFO } from '../data/msTattooData';
+import CornerGlowContainer from '../components/common/CornerGlowContainer';
 
 export default function ClassesPage() {
   const [selectedCourse, setSelectedCourse] = useState(null);
@@ -62,61 +64,71 @@ export default function ClassesPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.7, delay: idx * 0.12 }}
-                className="bg-[#111115] border border-[#22222a] hover:border-[#c5a880]/60 transition-all duration-500 flex flex-col justify-between overflow-hidden group shadow-xl"
+                className="h-full"
               >
-                <div>
-                  <div className="relative h-64 sm:h-76 overflow-hidden bg-[#0c0c0f]">
-                    <img
-                      src={course.image}
-                      alt={course.title}
-                      className="w-full h-full object-cover object-center group-hover:scale-105 transition-all duration-700 ease-out"
-                      loading="lazy"
-                    />
-                    <div className="absolute top-4 left-4">
-                      <span className="text-xs tracking-[0.2em] text-[#c5a880] uppercase bg-[#09090b]/90 px-3 py-1.5 border border-[#c5a880]/20 font-mono-tech">
-                        {course.duration}
-                      </span>
+                <CornerGlowContainer
+                  onClick={() => setSelectedCourse(course)}
+                  dataCursor="view"
+                  className="h-full bg-[#111115] border border-[#22222a] hover:border-[#c5a880]/60 transition-all duration-500 flex flex-col justify-between shadow-xl"
+                >
+                  <div>
+                    <div className="relative h-64 sm:h-76 overflow-hidden bg-[#0c0c0f]">
+                      <img
+                        src={course.image}
+                        alt={course.title}
+                        className="w-full h-full object-cover object-center group-hover:scale-105 transition-all duration-700 ease-out"
+                        loading="lazy"
+                      />
+                      <div className="absolute top-4 left-4">
+                        <span className="text-xs tracking-[0.2em] text-[#c5a880] uppercase bg-[#09090b]/90 px-3 py-1.5 border border-[#c5a880]/20 font-mono-tech">
+                          {course.duration}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="p-8 sm:p-10 space-y-4">
+                      <div className="flex items-baseline justify-between border-b border-[#22222a] pb-4">
+                        <h3 className="font-cinzel text-2xl sm:text-3xl text-[#F7F6F2] font-normal tracking-wide group-hover:text-[#c5a880] transition-colors">
+                          {course.title}
+                        </h3>
+                        <span className="font-cinzel text-2xl text-[#c5a880] font-semibold font-mono-tech ml-4">
+                          {course.fee}
+                        </span>
+                      </div>
+
+                      <p className="text-base text-[#c5a880] font-mono-tech font-medium">
+                        {course.subtitle}
+                      </p>
+                      <p className="text-base sm:text-lg text-[#d4d3cc] font-light leading-relaxed">
+                        {course.overview}
+                      </p>
                     </div>
                   </div>
 
-                  <div className="p-8 sm:p-10 space-y-4">
-                    <div className="flex items-baseline justify-between border-b border-[#22222a] pb-4">
-                      <h3 className="font-cinzel text-2xl sm:text-3xl text-[#F7F6F2] font-normal tracking-wide">
-                        {course.title}
-                      </h3>
-                      <span className="font-cinzel text-2xl text-[#c5a880] font-semibold font-mono-tech ml-4">
-                        {course.fee}
-                      </span>
-                    </div>
-
-                    <p className="text-base text-[#c5a880] font-mono-tech font-medium">
-                      {course.subtitle}
-                    </p>
-                    <p className="text-base sm:text-lg text-[#d4d3cc] font-light leading-relaxed">
-                      {course.overview}
-                    </p>
+                  <div className="p-8 pt-0 sm:p-10 sm:pt-0 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedCourse(course);
+                      }}
+                      className="py-4 text-center text-sm tracking-[0.18em] uppercase text-[#F7F6F2] bg-[#181820] border border-[#22222a] hover:border-[#c5a880] hover:text-[#c5a880] transition-colors font-mono-tech font-semibold cursor-pointer"
+                    >
+                      VIEW DETAILS
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSubmitted(false);
+                        setApplyModalCourse(course);
+                      }}
+                      className="py-4 text-center text-sm tracking-[0.18em] font-semibold uppercase text-[#09090b] bg-[#c5a880] hover:bg-[#d4af37] transition-colors font-mono-tech shadow-md cursor-pointer"
+                    >
+                      ENROLL NOW
+                    </button>
                   </div>
-                </div>
-
-                <div className="p-8 pt-0 sm:p-10 sm:pt-0 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedCourse(course)}
-                    className="py-4 text-center text-sm tracking-[0.18em] uppercase text-[#F7F6F2] bg-[#181820] border border-[#22222a] hover:border-[#c5a880] hover:text-[#c5a880] transition-colors font-mono-tech font-semibold cursor-pointer"
-                  >
-                    VIEW DETAILS
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSubmitted(false);
-                      setApplyModalCourse(course);
-                    }}
-                    className="py-4 text-center text-sm tracking-[0.18em] font-semibold uppercase text-[#09090b] bg-[#c5a880] hover:bg-[#d4af37] transition-colors font-mono-tech shadow-md cursor-pointer"
-                  >
-                    ENROLL NOW
-                  </button>
-                </div>
+                </CornerGlowContainer>
               </motion.div>
             ))}
           </div>
@@ -141,61 +153,71 @@ export default function ClassesPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.7, delay: idx * 0.12 }}
-                className="bg-[#111115] border border-[#22222a] hover:border-[#c5a880]/60 transition-all duration-500 flex flex-col justify-between overflow-hidden group shadow-xl"
+                className="h-full"
               >
-                <div>
-                  <div className="relative h-64 sm:h-76 overflow-hidden bg-[#0c0c0f]">
-                    <img
-                      src={course.image}
-                      alt={course.title}
-                      className="w-full h-full object-cover object-center group-hover:scale-105 transition-all duration-700 ease-out"
-                      loading="lazy"
-                    />
-                    <div className="absolute top-4 left-4">
-                      <span className="text-xs tracking-[0.2em] text-[#c5a880] uppercase bg-[#09090b]/90 px-3 py-1.5 border border-[#c5a880]/20 font-mono-tech">
-                        {course.duration}
-                      </span>
+                <CornerGlowContainer
+                  onClick={() => setSelectedCourse(course)}
+                  dataCursor="view"
+                  className="h-full bg-[#111115] border border-[#22222a] hover:border-[#c5a880]/60 transition-all duration-500 flex flex-col justify-between shadow-xl"
+                >
+                  <div>
+                    <div className="relative h-64 sm:h-76 overflow-hidden bg-[#0c0c0f]">
+                      <img
+                        src={course.image}
+                        alt={course.title}
+                        className="w-full h-full object-cover object-center group-hover:scale-105 transition-all duration-700 ease-out"
+                        loading="lazy"
+                      />
+                      <div className="absolute top-4 left-4">
+                        <span className="text-xs tracking-[0.2em] text-[#c5a880] uppercase bg-[#09090b]/90 px-3 py-1.5 border border-[#c5a880]/20 font-mono-tech">
+                          {course.duration}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="p-8 sm:p-10 space-y-4">
+                      <div className="flex items-baseline justify-between border-b border-[#22222a] pb-4">
+                        <h3 className="font-cinzel text-2xl sm:text-3xl text-[#F7F6F2] font-normal tracking-wide group-hover:text-[#c5a880] transition-colors">
+                          {course.title}
+                        </h3>
+                        <span className="font-cinzel text-2xl text-[#c5a880] font-semibold font-mono-tech ml-4">
+                          {course.fee}
+                        </span>
+                      </div>
+
+                      <p className="text-base text-[#c5a880] font-mono-tech font-medium">
+                        {course.subtitle}
+                      </p>
+                      <p className="text-base sm:text-lg text-[#d4d3cc] font-light leading-relaxed">
+                        {course.overview}
+                      </p>
                     </div>
                   </div>
 
-                  <div className="p-8 sm:p-10 space-y-4">
-                    <div className="flex items-baseline justify-between border-b border-[#22222a] pb-4">
-                      <h3 className="font-cinzel text-2xl sm:text-3xl text-[#F7F6F2] font-normal tracking-wide">
-                        {course.title}
-                      </h3>
-                      <span className="font-cinzel text-2xl text-[#c5a880] font-semibold font-mono-tech ml-4">
-                        {course.fee}
-                      </span>
-                    </div>
-
-                    <p className="text-base text-[#c5a880] font-mono-tech font-medium">
-                      {course.subtitle}
-                    </p>
-                    <p className="text-base sm:text-lg text-[#d4d3cc] font-light leading-relaxed">
-                      {course.overview}
-                    </p>
+                  <div className="p-8 pt-0 sm:p-10 sm:pt-0 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedCourse(course);
+                      }}
+                      className="py-4 text-center text-sm tracking-[0.18em] uppercase text-[#F7F6F2] bg-[#181820] border border-[#22222a] hover:border-[#c5a880] hover:text-[#c5a880] transition-colors font-mono-tech font-semibold cursor-pointer"
+                    >
+                      VIEW DETAILS
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSubmitted(false);
+                        setApplyModalCourse(course);
+                      }}
+                      className="py-4 text-center text-sm tracking-[0.18em] font-semibold uppercase text-[#09090b] bg-[#c5a880] hover:bg-[#d4af37] transition-colors font-mono-tech shadow-md cursor-pointer"
+                    >
+                      ENROLL NOW
+                    </button>
                   </div>
-                </div>
-
-                <div className="p-8 pt-0 sm:p-10 sm:pt-0 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedCourse(course)}
-                    className="py-4 text-center text-sm tracking-[0.18em] uppercase text-[#F7F6F2] bg-[#181820] border border-[#22222a] hover:border-[#c5a880] hover:text-[#c5a880] transition-colors font-mono-tech font-semibold cursor-pointer"
-                  >
-                    VIEW DETAILS
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSubmitted(false);
-                      setApplyModalCourse(course);
-                    }}
-                    className="py-4 text-center text-sm tracking-[0.18em] font-semibold uppercase text-[#09090b] bg-[#c5a880] hover:bg-[#d4af37] transition-colors font-mono-tech shadow-md cursor-pointer"
-                  >
-                    ENROLL NOW
-                  </button>
-                </div>
+                </CornerGlowContainer>
               </motion.div>
             ))}
           </div>
@@ -211,12 +233,12 @@ export default function ClassesPage() {
               {STUDIO_INFO.workingDays} • Hands-on practice with certified mentorship.
             </p>
           </div>
-          <a
-            href="/contact"
-            className="inline-flex items-center justify-center px-8 py-4 text-sm sm:text-base tracking-[0.2em] font-semibold uppercase text-[#09090b] bg-[#c5a880] hover:bg-[#d4af37] transition-all whitespace-nowrap font-mono-tech shadow-lg"
+          <Link
+            to="/contact"
+            className="inline-flex items-center justify-center px-8 py-4 text-sm sm:text-base tracking-[0.2em] font-semibold uppercase text-[#09090b] bg-[#c5a880] hover:bg-[#d4af37] transition-all whitespace-nowrap font-mono-tech shadow-lg cursor-pointer"
           >
             VISIT THE STUDIO →
-          </a>
+          </Link>
         </div>
 
       </div>

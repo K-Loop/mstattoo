@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { STUDIO_INFO } from '../data/msTattooData';
+import CornerGlowContainer from '../components/common/CornerGlowContainer';
 import BookingWizard from '../components/BookingWizard';
 
 export default function ContactPage() {
@@ -17,24 +18,28 @@ export default function ContactPage() {
       value: STUDIO_INFO.whatsapp,
       action: "CHAT WITH US →",
       href: `https://wa.me/${STUDIO_INFO.whatsapp.replace(/[^0-9]/g, '')}`,
+      isExternal: true,
     },
     {
       label: "CALL US",
       value: STUDIO_INFO.phone,
       action: "CALL NOW →",
       href: `tel:${STUDIO_INFO.phone.replace(/[^0-9+]/g, '')}`,
+      isExternal: true,
     },
     {
       label: "EMAIL US",
       value: STUDIO_INFO.email,
       action: "SEND EMAIL →",
       href: `mailto:${STUDIO_INFO.email}`,
+      isExternal: true,
     },
     {
       label: "STUDIO HOURS",
       value: STUDIO_INFO.schedule,
       action: `${STUDIO_INFO.workingDays} →`,
       href: "#booking",
+      isExternal: false,
     },
   ];
 
@@ -72,25 +77,34 @@ export default function ContactPage() {
         {/* 4 Large Contact Action Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 mb-24">
           {contactCards.map((card, idx) => (
-            <motion.a
+            <motion.div
               key={card.label}
-              href={card.href}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.7, delay: idx * 0.1 }}
-              className="p-8 bg-[#111115] border border-[#22222a] hover:border-[#c5a880]/60 transition-all block group space-y-3 shadow-xl"
+              className="h-full"
             >
-              <span className="text-xs tracking-[0.25em] text-[#c5a880] uppercase block font-mono-tech font-semibold">
-                {card.label}
-              </span>
-              <div className="font-cinzel text-lg sm:text-xl text-[#F7F6F2] group-hover:text-[#c5a880] transition-colors">
-                {card.value}
-              </div>
-              <p className="text-sm tracking-wider text-[#a3a299] font-mono-tech group-hover:text-[#F7F6F2] transition-colors pt-2">
-                {card.action}
-              </p>
-            </motion.a>
+              <CornerGlowContainer
+                as="a"
+                href={card.href}
+                target={card.isExternal ? '_blank' : undefined}
+                rel={card.isExternal ? 'noopener noreferrer' : undefined}
+                className="h-full p-8 bg-[#111115] border border-[#22222a] hover:border-[#c5a880]/60 transition-all flex flex-col justify-between space-y-3 shadow-xl block"
+              >
+                <div>
+                  <span className="text-xs tracking-[0.25em] text-[#c5a880] uppercase block font-mono-tech font-semibold">
+                    {card.label}
+                  </span>
+                  <div className="font-cinzel text-lg sm:text-xl text-[#F7F6F2] group-hover:text-[#c5a880] transition-colors mt-2">
+                    {card.value}
+                  </div>
+                </div>
+                <p className="text-sm tracking-wider text-[#a3a299] font-mono-tech group-hover:text-[#F7F6F2] transition-colors pt-2">
+                  {card.action}
+                </p>
+              </CornerGlowContainer>
+            </motion.div>
           ))}
         </div>
 

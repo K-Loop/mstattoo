@@ -48,11 +48,13 @@ export default function CursorOrb() {
       const target = e.target;
       if (!target) return;
 
-      const isImg =
-        target.tagName === 'IMG' ||
-        target.tagName === 'VIDEO' ||
-        target.closest('[data-cursor="view"]') ||
-        (target.closest('.group') && target.closest('.group').querySelector('img'));
+      // Check if target is inside an explicitly interactive view container or card
+      const viewContainer = target.closest('[data-cursor="view"]') || target.closest('[data-interactive="true"]');
+      const interactiveCard = target.closest('a') || target.closest('button') || target.closest('[role="button"]') || target.onclick;
+
+      const isInteractiveMedia =
+        (viewContainer && (target.tagName === 'IMG' || target.tagName === 'VIDEO' || viewContainer.querySelector('img, video'))) ||
+        (interactiveCard && (target.tagName === 'IMG' || target.tagName === 'VIDEO' || interactiveCard.querySelector('img, video')));
 
       const isBtn =
         target.tagName === 'BUTTON' ||
@@ -61,7 +63,8 @@ export default function CursorOrb() {
 
       const isLnk = target.tagName === 'A' || target.closest('a') || target.getAttribute('role') === 'button';
 
-      if (isImg && !target.closest('button') && !target.closest('header')) {
+      // Avoid fake VIEW cursor inside header logo or static banners
+      if (isInteractiveMedia && !target.closest('header') && !target.closest('footer')) {
         setCursorState('image');
         setCursorText('VIEW');
       } else if (isBtn) {

@@ -1,24 +1,33 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import CornerGlowContainer from '../components/common/CornerGlowContainer';
 import { imageAssets } from '../data/imageAssets';
 
 export default function AboutPage() {
+  const navigate = useNavigate();
+
   const PILLARS = [
     {
       title: "1. CUSTOM TATTOOS",
       desc: "Single-needle fine line, chiaroscuro realism portraits, and custom anatomical flow with surgical-grade sterilization.",
       image: imageAssets.pillars.tattoo,
+      link: "/gallery?category=tattoos",
+      cta: "EXPLORE TATTOOS →",
     },
     {
       title: "2. FINE ART COMMISSIONS",
       desc: "Museum-grade graphite pencil portraits, polychromos colored pencils, crystal stone art, and architectural wall murals.",
       image: imageAssets.pillars.artwork,
+      link: "/gallery?category=graphite-pencil",
+      cta: "VIEW ARTWORKS →",
     },
     {
       title: "3. PROFESSIONAL EDUCATION",
       desc: "3-month tattoo apprenticeships, 2-month portrait drawing courses, and intensive 3-day art workshops.",
       image: imageAssets.pillars.academy,
+      link: "/classes",
+      cta: "VIEW CLASSES →",
     },
   ];
 
@@ -59,13 +68,13 @@ export default function AboutPage() {
             <div className="pt-4 flex flex-wrap gap-4 font-mono-tech">
               <Link
                 to="/contact"
-                className="inline-flex items-center justify-center px-8 py-4 text-sm sm:text-base tracking-[0.2em] font-semibold uppercase text-[#09090b] bg-[#c5a880] hover:bg-[#d4af37] transition-all shadow-lg"
+                className="inline-flex items-center justify-center px-8 py-4 text-sm sm:text-base tracking-[0.2em] font-semibold uppercase text-[#09090b] bg-[#c5a880] hover:bg-[#d4af37] transition-all shadow-lg cursor-pointer"
               >
                 BOOK A SESSION →
               </Link>
               <Link
                 to="/gallery"
-                className="inline-flex items-center justify-center px-8 py-4 text-sm sm:text-base tracking-[0.2em] font-medium uppercase text-[#F7F6F2] border border-[#33333f] hover:border-[#c5a880] hover:text-[#c5a880] transition-all"
+                className="inline-flex items-center justify-center px-8 py-4 text-sm sm:text-base tracking-[0.2em] font-medium uppercase text-[#F7F6F2] border border-[#33333f] hover:border-[#c5a880] hover:text-[#c5a880] transition-all cursor-pointer"
               >
                 VIEW PORTFOLIO
               </Link>
@@ -73,15 +82,19 @@ export default function AboutPage() {
           </div>
 
           <div className="lg:col-span-6">
-            <div className="relative h-[420px] sm:h-[520px] overflow-hidden border border-[#22222a] bg-[#111115] shadow-2xl">
+            <CornerGlowContainer
+              onClick={() => navigate('/gallery')}
+              dataCursor="view"
+              className="h-[420px] sm:h-[520px] border border-[#22222a] bg-[#111115] shadow-2xl"
+            >
               <img
                 src={imageAssets.hero.main}
                 alt="MS Tattoo Studio Craftsmanship"
-                className="w-full h-full object-cover object-center"
+                className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
                 loading="eager"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#09090b] via-transparent to-transparent opacity-80" />
-            </div>
+            </CornerGlowContainer>
           </div>
         </div>
 
@@ -98,28 +111,37 @@ export default function AboutPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10">
             {PILLARS.map((p) => (
-              <div
+              <CornerGlowContainer
                 key={p.title}
-                className="bg-[#111115] border border-[#22222a] hover:border-[#c5a880]/60 transition-all duration-500 overflow-hidden shadow-xl flex flex-col justify-between"
+                onClick={() => navigate(p.link)}
+                dataCursor="view"
+                className="bg-[#111115] border border-[#22222a] hover:border-[#c5a880]/60 transition-all duration-500 shadow-xl flex flex-col justify-between"
               >
                 <div className="relative h-64 overflow-hidden bg-[#0a0a0c]">
                   <img
                     src={p.image}
                     alt={p.title}
-                    className="w-full h-full object-cover object-center"
+                    className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
                     loading="lazy"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#111115] via-transparent to-transparent opacity-85" />
                 </div>
-                <div className="p-8 space-y-3">
-                  <h3 className="font-cinzel text-2xl text-[#F7F6F2]">
-                    {p.title}
-                  </h3>
-                  <p className="text-base text-[#d4d3cc] font-light leading-relaxed">
-                    {p.desc}
-                  </p>
+                <div className="p-8 space-y-4 flex-grow flex flex-col justify-between">
+                  <div className="space-y-2">
+                    <h3 className="font-cinzel text-2xl text-[#F7F6F2] group-hover:text-[#c5a880] transition-colors">
+                      {p.title}
+                    </h3>
+                    <p className="text-base text-[#d4d3cc] font-light leading-relaxed">
+                      {p.desc}
+                    </p>
+                  </div>
+                  <div className="pt-4 border-t border-[#22222a]">
+                    <span className="inline-flex items-center text-sm tracking-[0.2em] text-[#c5a880] font-semibold uppercase group-hover:text-[#F7F6F2] transition-colors font-mono-tech">
+                      <span>{p.cta}</span>
+                    </span>
+                  </div>
                 </div>
-              </div>
+              </CornerGlowContainer>
             ))}
           </div>
         </div>
@@ -141,3 +163,4 @@ export default function AboutPage() {
     </div>
   );
 }
+

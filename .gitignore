@@ -13,6 +13,15 @@ dist-ssr
 *.local
 *.MOV
 *.mov
+*.HEIC
+*.heic
+
+# Large media dumps — add specific images manually instead
+public/images/IMG_*.HEIC
+public/images/IMG_*.heic
+public/images/Screenshot_*.png
+public/images/WhatsApp*
+public/tattoos/WhatsApp*
 
 # Editor directories and files
 .vscode/*

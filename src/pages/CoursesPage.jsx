@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import CornerGlowContainer from '../components/common/CornerGlowContainer';
 
 const ONLINE_COURSES = [
   {
@@ -107,72 +109,76 @@ export default function CoursesPage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: idx * 0.08 }}
-              className="bg-[#111115] border border-[#22222a] hover:border-[#c5a880]/60 transition-all duration-500 overflow-hidden shadow-xl flex flex-col justify-between group"
+              className="h-full"
             >
-              <div>
-                {/* Video Frame */}
-                <div
-                  onClick={() => setActiveVideo(course)}
-                  className="relative h-64 sm:h-72 overflow-hidden bg-[#0a0a0c] cursor-pointer"
-                >
-                  <img
-                    src={course.poster}
-                    alt={course.title}
-                    className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
-                    loading="lazy"
-                  />
-                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center group-hover:bg-black/20 transition-colors">
-                    <div className="w-14 h-14 rounded-full bg-[#c5a880] text-[#09090b] flex items-center justify-center pl-1 shadow-2xl group-hover:scale-110 transition-transform">
-                      ▶
+              <CornerGlowContainer
+                onClick={() => setActiveVideo(course)}
+                dataCursor="view"
+                className="h-full bg-[#111115] border border-[#22222a] hover:border-[#c5a880]/60 transition-all duration-500 shadow-xl flex flex-col justify-between"
+              >
+                <div>
+                  {/* Video Frame */}
+                  <div
+                    className="relative h-64 sm:h-72 overflow-hidden bg-[#0a0a0c]"
+                  >
+                    <img
+                      src={course.poster}
+                      alt={course.title}
+                      className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center group-hover:bg-black/20 transition-colors">
+                      <div className="w-14 h-14 rounded-full bg-[#c5a880] text-[#09090b] flex items-center justify-center pl-1 shadow-2xl group-hover:scale-110 transition-transform">
+                        ▶
+                      </div>
+                    </div>
+                    <div className="absolute top-4 left-4">
+                      <span className="text-xs tracking-[0.2em] text-[#c5a880] uppercase bg-[#09090b]/90 px-3 py-1 border border-[#c5a880]/30 font-mono-tech">
+                        {course.category}
+                      </span>
                     </div>
                   </div>
-                  <div className="absolute top-4 left-4">
-                    <span className="text-xs tracking-[0.2em] text-[#c5a880] uppercase bg-[#09090b]/90 px-3 py-1 border border-[#c5a880]/30 font-mono-tech">
-                      {course.category}
-                    </span>
+
+                  {/* Card Content */}
+                  <div className="p-8 space-y-3">
+                    <div className="flex items-center justify-between text-xs text-[#888780] font-mono-tech">
+                      <span>{course.duration}</span>
+                      <span>{course.level}</span>
+                    </div>
+                    <h3 className="font-cinzel text-xl sm:text-2xl text-[#F7F6F2] font-normal group-hover:text-[#c5a880] transition-colors leading-snug">
+                      {course.title}
+                    </h3>
+                    <p className="text-sm sm:text-base text-[#d4d3cc] font-light leading-relaxed">
+                      {course.description}
+                    </p>
                   </div>
                 </div>
 
-                {/* Card Content */}
-                <div className="p-8 space-y-3">
-                  <div className="flex items-center justify-between text-xs text-[#888780] font-mono-tech">
-                    <span>{course.duration}</span>
-                    <span>{course.level}</span>
-                  </div>
-                  <h3 className="font-cinzel text-xl sm:text-2xl text-[#F7F6F2] font-normal group-hover:text-[#c5a880] transition-colors leading-snug">
-                    {course.title}
-                  </h3>
-                  <p className="text-sm sm:text-base text-[#d4d3cc] font-light leading-relaxed">
-                    {course.description}
-                  </p>
-                </div>
-              </div>
-
-              {/* Action */}
-              <div className="p-8 pt-0 flex items-center justify-between border-t border-[#22222a]/60 pt-4">
-                <button
-                  type="button"
-                  onClick={() => setActiveVideo(course)}
-                  className="inline-flex items-center text-sm tracking-[0.18em] text-[#c5a880] font-semibold uppercase hover:text-[#F7F6F2] transition-colors font-mono-tech cursor-pointer"
-                >
-                  <span>WATCH DEMONSTRATION</span>
-                  <span className="ml-2">→</span>
-                </button>
-                {course.youtubeUrl ? (
-                  <a
-                    href={course.youtubeUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs tracking-wider text-[#a3a299] hover:text-[#c5a880] font-mono-tech"
+                {/* Action */}
+                <div className="p-8 pt-0 flex items-center justify-between border-t border-[#22222a]/60 pt-4">
+                  <span
+                    className="inline-flex items-center text-sm tracking-[0.18em] text-[#c5a880] font-semibold uppercase group-hover:text-[#F7F6F2] transition-colors font-mono-tech"
                   >
-                    YOUTUBE ↗
-                  </a>
-                ) : (
-                  <span className="text-xs text-[#888780] font-mono-tech">
-                    HD STUDIO REEL
+                    <span>WATCH DEMONSTRATION</span>
+                    <span className="ml-2">→</span>
                   </span>
-                )}
-              </div>
+                  {course.youtubeUrl ? (
+                    <a
+                      href={course.youtubeUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="text-xs tracking-wider text-[#a3a299] hover:text-[#c5a880] font-mono-tech"
+                    >
+                      YOUTUBE ↗
+                    </a>
+                  ) : (
+                    <span className="text-xs text-[#888780] font-mono-tech">
+                      HD STUDIO REEL
+                    </span>
+                  )}
+                </div>
+              </CornerGlowContainer>
             </motion.div>
           ))}
         </div>
@@ -187,12 +193,12 @@ export default function CoursesPage() {
               Join our 3-month tattoo apprenticeship or 2-month portrait drawing studio cohorts.
             </p>
           </div>
-          <a
-            href="/classes"
-            className="inline-flex items-center justify-center px-8 py-4 text-sm sm:text-base tracking-[0.2em] font-semibold uppercase text-[#09090b] bg-[#c5a880] hover:bg-[#d4af37] transition-all whitespace-nowrap font-mono-tech shadow-lg"
+          <Link
+            to="/classes"
+            className="inline-flex items-center justify-center px-8 py-4 text-sm sm:text-base tracking-[0.2em] font-semibold uppercase text-[#09090b] bg-[#c5a880] hover:bg-[#d4af37] transition-all whitespace-nowrap font-mono-tech shadow-lg cursor-pointer"
           >
             EXPLORE IN-PERSON CLASSES →
-          </a>
+          </Link>
         </div>
 
       </div>

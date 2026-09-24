@@ -1,759 +1,519 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { 
-  FiUsers, 
-  FiShoppingBag, 
-  FiCheckCircle, 
-  FiDollarSign, 
-  FiTrendingUp, 
-  FiSearch, 
-  FiPlus, 
-  FiTrash2, 
-  FiX, 
-  FiPhone, 
-  FiMail, 
-  FiMapPin 
+import React, { useState, useRef, useCallback, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  FiUploadCloud,
+  FiX,
+  FiTrash2,
+  FiImage,
+  FiCheckCircle,
+  FiAlertCircle,
+  FiArrowLeft,
+  FiGrid,
+  FiEye,
 } from 'react-icons/fi';
-import Button from '../common/Button';
-import BackButton from '../common/BackButton';
-import { CustomInput, CustomSelect } from '../common/CustomControls';
-import { EmptyState, WarningModal } from '../common/StateViews';
-import { storageService } from '../../services/storageService';
-import { artCourses } from '../../data/courses';
 
+/* ─── Gallery categories mirrored from galleryData.js ─── */
+const UPLOAD_CATEGORIES = [
+  { id: 'tattoos',         label: 'Tattoos',                  medium: 'Tattoo Art',                 folder: 'tattoos' },
+  { id: 'graphite-pencil', label: 'Pencil & Graphite',        medium: 'Graphite on Paper',           folder: 'artworks' },
+  { id: 'acrylic-wall',   label: 'Paintings & Murals',        medium: 'Acrylic on Canvas / Wall',    folder: 'artworks' },
+  { id: 'crystal-stone',  label: 'Crystal Stone Art',         medium: 'Crystal Stone / Resin',       folder: 'artworks' },
+  { id: 'glitter-art',    label: 'Glitter Surprise Art',      medium: 'Glitter on Board / Canvas',   folder: 'artworks' },
+  { id: 'specialty-art',  label: 'Specialty & Craft',         medium: 'Mixed Media / Specialty',     folder: 'artworks' },
+  { id: 'videos',         label: 'Video Reels',               medium: 'Studio Video',                folder: 'videos' },
+];
+
+const STORAGE_KEY = 'ms_admin_uploads';
+
+/* ─── Helpers ─── */
+function loadUploads() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+  } catch {
+    return [];
+  }
+}
+
+function saveUploads(items) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+}
+
+function generateId(categoryId) {
+  return `admin-${categoryId}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+}
+
+function readFileAsDataURL(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => resolve(e.target.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════
+   MAIN COMPONENT
+═══════════════════════════════════════════════════════════ */
 export default function AdminDashboard({ onClose }) {
-  const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'registrations' | 'orders' | 'sales'
-  const [metrics, setMetrics] = useState({
-    totalRegistrations: 0,
-    activeStudents: 0,
-    artworkOrders: 0,
-    productsSold: 0,
-    totalRevenue: 0
-  });
+  const navigate = useNavigate();
+  const [activeCategory, setActiveCategory] = useState(UPLOAD_CATEGORIES[0].id);
+  const [uploads, setUploads] = useState(loadUploads);
+  const [dragging, setDragging] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [toast, setToast] = useState(null); // { type: 'success'|'error', msg }
+  const [preview, setPreview] = useState(null); // item to preview fullscreen
+  const [deleteId, setDeleteId] = useState(null);
+  const fileInputRef = useRef();
 
-  const [registrations, setRegistrations] = useState([]);
-  const [orders, setOrders] = useState([]);
-  const [sales, setSales] = useState([]);
-
-  // Search & Filter state
-  const [searchQuery, setSearchQuery] = useState('');
-  const [courseFilter, setCourseFilter] = useState('all');
-  const [regStatusFilter, setRegStatusFilter] = useState('all');
-  const [orderStatusFilter, setOrderStatusFilter] = useState('all');
-
-  // Selected applicant detail modal
-  const [selectedReg, setSelectedReg] = useState(null);
-
-  // Destructive Action Warning Modal state
-  const [warningModal, setWarningModal] = useState({
-    isOpen: false,
-    title: '',
-    description: '',
-    onConfirm: null
-  });
-
-  // New Sale modal
-  const [showAddSaleModal, setShowAddSaleModal] = useState(false);
-  const [newSaleData, setNewSaleData] = useState({
-    productName: '',
-    category: 'Canvas Painting',
-    sellingPrice: '',
-    quantity: 1,
-    customer: '',
-    saleStatus: 'Paid'
-  });
-
-  const loadData = async () => {
-    const [m, r, o, s] = await Promise.all([
-      storageService.getMetrics(),
-      storageService.getRegistrations(),
-      storageService.getOrders(),
-      storageService.getSales()
-    ]);
-    setMetrics(m);
-    setRegistrations(r);
-    setOrders(o);
-    setSales(s);
+  /* ─── Toast helper ─── */
+  const showToast = (type, msg) => {
+    setToast({ type, msg });
+    setTimeout(() => setToast(null), 3000);
   };
 
+  /* ─── Persist whenever uploads change ─── */
   useEffect(() => {
-    loadData();
-  }, []);
+    saveUploads(uploads);
+    // Also push to window so GalleryPage can pick it up live (hot inject)
+    window.__adminUploads = uploads;
+  }, [uploads]);
 
-  // Status Handlers
-  const handleRegStatusChange = async (id, status) => {
-    await storageService.updateRegistrationStatus(id, status);
-    loadData();
-  };
+  /* ─── Active category info ─── */
+  const catInfo = UPLOAD_CATEGORIES.find((c) => c.id === activeCategory);
+  const categoryUploads = uploads.filter((u) => u.category === activeCategory);
+  const totalUploads = uploads.length;
 
-  const handleOrderStatusChange = async (id, status) => {
-    await storageService.updateOrderStatus(id, status);
-    loadData();
-  };
-
-  const handleSaleStatusChange = async (id, status) => {
-    await storageService.updateSaleStatus(id, status);
-    loadData();
-  };
-
-  const confirmDeleteReg = (id) => {
-    setWarningModal({
-      isOpen: true,
-      title: 'Delete Registration Record',
-      description: 'Are you sure you want to delete this applicant registration? This will permanently remove their records from the local system.',
-      onConfirm: async () => {
-        await storageService.deleteRegistration(id);
-        setWarningModal({ isOpen: false });
-        loadData();
+  /* ─── File processing ─── */
+  const processFiles = useCallback(
+    async (files) => {
+      const validFiles = Array.from(files).filter((f) =>
+        f.type.startsWith('image/') || f.type.startsWith('video/')
+      );
+      if (!validFiles.length) {
+        showToast('error', 'Please select image or video files only.');
+        return;
       }
-    });
-  };
-
-  const confirmDeleteOrder = (id) => {
-    setWarningModal({
-      isOpen: true,
-      title: 'Delete Artwork Commission Order',
-      description: 'Are you sure you want to delete this artwork order record? This cannot be undone.',
-      onConfirm: async () => {
-        await storageService.deleteOrder(id);
-        setWarningModal({ isOpen: false });
-        loadData();
+      setUploading(true);
+      try {
+        const newItems = await Promise.all(
+          validFiles.map(async (file) => {
+            const dataUrl = await readFileAsDataURL(file);
+            const isVideo = file.type.startsWith('video/');
+            return {
+              id: generateId(activeCategory),
+              src: dataUrl,
+              type: isVideo ? 'video' : 'image',
+              category: activeCategory,
+              categoryName: catInfo.label,
+              title: file.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' '),
+              medium: catInfo.medium,
+              dimensions: 'Custom Studio Size',
+              year: new Date().getFullYear().toString(),
+              fee: 'Price on Request',
+              description: `${catInfo.label} by MS Tattoo & Art Studio.`,
+              uploadedAt: new Date().toISOString(),
+              fileName: file.name,
+              fileSize: file.size,
+            };
+          })
+        );
+        setUploads((prev) => [...prev, ...newItems]);
+        showToast('success', `${newItems.length} file${newItems.length > 1 ? 's' : ''} uploaded to ${catInfo.label}!`);
+      } catch {
+        showToast('error', 'Upload failed. Please try again.');
+      } finally {
+        setUploading(false);
       }
-    });
+    },
+    [activeCategory, catInfo]
+  );
+
+  /* ─── Drag & drop ─── */
+  const onDrop = useCallback(
+    (e) => {
+      e.preventDefault();
+      setDragging(false);
+      processFiles(e.dataTransfer.files);
+    },
+    [processFiles]
+  );
+
+  const onDragOver = (e) => { e.preventDefault(); setDragging(true); };
+  const onDragLeave = () => setDragging(false);
+
+  /* ─── Delete ─── */
+  const handleDelete = (id) => {
+    setUploads((prev) => prev.filter((u) => u.id !== id));
+    setDeleteId(null);
+    showToast('success', 'Image removed.');
   };
 
-  const confirmDeleteSale = (id) => {
-    setWarningModal({
-      isOpen: true,
-      title: 'Delete Sale Entry',
-      description: 'Are you sure you want to delete this ledger sale transaction?',
-      onConfirm: async () => {
-        await storageService.deleteSale(id);
-        setWarningModal({ isOpen: false });
-        loadData();
-      }
-    });
-  };
-
-  const handleCreateSale = async (e) => {
-    e.preventDefault();
-    if (!newSaleData.productName || !newSaleData.sellingPrice) return;
-    await storageService.addSale({
-      ...newSaleData,
-      sellingPrice: Number(newSaleData.sellingPrice)
-    });
-    setShowAddSaleModal(false);
-    setNewSaleData({
-      productName: '',
-      category: 'Canvas Painting',
-      sellingPrice: '',
-      quantity: 1,
-      customer: '',
-      saleStatus: 'Paid'
-    });
-    loadData();
-  };
-
-  // Filtered lists
-  const filteredRegistrations = registrations.filter(r => {
-    const matchesSearch = 
-      (r.applicantName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (r.id || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (r.email || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (r.phone || '').includes(searchQuery);
-    const matchesCourse = courseFilter === 'all' || r.courseId === courseFilter;
-    const matchesStatus = regStatusFilter === 'all' || r.status === regStatusFilter;
-    return matchesSearch && matchesCourse && matchesStatus;
-  });
-
-  const filteredOrders = orders.filter(o => {
-    const matchesSearch = 
-      (o.customerName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (o.id || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (o.email || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (o.phone || '').includes(searchQuery);
-    const matchesStatus = orderStatusFilter === 'all' || o.status === orderStatusFilter;
-    return matchesSearch && matchesStatus;
-  });
-
-  const filteredSales = sales.filter(s => {
-    return (
-      (s.productName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (s.customer || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (s.id || '').toLowerCase().includes(searchQuery.toLowerCase())
+  /* ─── Title edit inline ─── */
+  const handleTitleEdit = (id, newTitle) => {
+    setUploads((prev) =>
+      prev.map((u) => (u.id === id ? { ...u, title: newTitle } : u))
     );
-  });
+  };
+
+  const handleFeeEdit = (id, newFee) => {
+    setUploads((prev) =>
+      prev.map((u) => (u.id === id ? { ...u, fee: newFee } : u))
+    );
+  };
+
+  /* ─── Format file size ─── */
+  const fmtSize = (bytes) => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-[#F7F6F2] text-[#111111] overflow-y-auto text-left">
-      
-      {/* TOP PORTAL BAR: BackButton ALWAYS ON THE LEFT */}
-      <header className="sticky top-0 z-30 bg-[#F7F6F2] border-b border-[#D8D6D0] px-6 sm:px-10 py-4 flex items-center justify-between shadow-xs">
-        <div className="flex items-center gap-6">
-          <BackButton
-            onClick={onClose}
-            label="Back to Studio"
-          />
-          <span className="text-[#D8D6D0] hidden sm:inline">|</span>
-          <div className="hidden sm:block">
-            <span className="text-[10px] uppercase font-mono tracking-[0.25em] text-[#777777] block">
-              Administrative Desk
+    <div className="min-h-screen bg-[#09090b] text-[#E5E3DC] flex flex-col">
+
+      {/* ── TOP HEADER ── */}
+      <header className="sticky top-0 z-40 bg-[#09090b]/95 backdrop-blur-md border-b border-[#22222a] px-6 sm:px-10 py-4 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <button
+            onClick={onClose || (() => navigate('/'))}
+            className="flex items-center gap-2 text-[#888780] hover:text-[#c5a880] transition-colors text-sm font-mono-tech tracking-widest uppercase cursor-pointer"
+          >
+            <FiArrowLeft className="w-4 h-4" />
+            Back to Studio
+          </button>
+          <span className="text-[#22222a] hidden sm:inline">|</span>
+          <div className="hidden sm:flex flex-col">
+            <span className="text-[10px] uppercase font-mono-tech tracking-[0.25em] text-[#c5a880]">
+              Admin Portal
             </span>
-            <span className="font-cinzel text-sm font-semibold text-[#111111]">
-              MS Tattoo & Art Studio Management
-            </span>
+            <span className="font-cinzel text-sm text-[#F7F6F2]">Image Library Manager</span>
           </div>
         </div>
 
-        {/* Action / Timing */}
-        <div className="flex items-center gap-4 text-xs font-mono">
-          <span className="hidden md:inline text-[#777777]">Studio Timings: 10:30 AM – 5:00 PM</span>
-          <Button variant="outline" size="sm" onClick={onClose} icon={FiX}>
-            Close Portal
-          </Button>
+        <div className="flex items-center gap-3">
+          <span className="text-xs font-mono-tech text-[#888780]">
+            <span className="text-[#c5a880] font-semibold">{totalUploads}</span> total uploads
+          </span>
+          <button
+            onClick={() => navigate('/gallery')}
+            className="flex items-center gap-2 px-4 py-2 text-xs font-mono-tech tracking-widest uppercase border border-[#2a2a32] text-[#888780] hover:border-[#c5a880]/60 hover:text-[#c5a880] transition-all cursor-pointer"
+          >
+            <FiEye className="w-3.5 h-3.5" />
+            View Gallery
+          </button>
         </div>
       </header>
 
-      {/* PORTAL MAIN CONTENT */}
-      <div className="max-w-[1720px] mx-auto px-4 sm:px-8 lg:px-10 py-8 w-full space-y-8">
-        
-        {/* TAB NAVIGATION STRIP */}
-        <div className="flex border-b border-[#D8D6D0] gap-2 overflow-x-auto">
-          {[
-            { id: 'overview', label: 'Studio Overview' },
-            { id: 'registrations', label: `Academy Registrations (${registrations.length})` },
-            { id: 'orders', label: `Artwork Inquiries (${orders.length})` },
-            { id: 'sales', label: `Sales Tracker (${sales.length})` }
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`py-3 px-5 text-xs uppercase tracking-[0.2em] font-medium transition-colors whitespace-nowrap border-b-2 -mb-[1px] cursor-pointer ${
-                activeTab === tab.id
-                  ? 'border-[#111111] text-[#111111] font-bold'
-                  : 'border-transparent text-[#777777] hover:text-[#111111]'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
+      <div className="flex flex-col lg:flex-row flex-1 min-h-0">
 
-        {/* OVERVIEW TAB */}
-        {activeTab === 'overview' && (
-          <div className="space-y-8">
-            {/* 5 KPI Metric Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-              <div className="p-6 bg-[#EFEDE7] border border-[#D8D6D0]">
-                <div className="flex items-center justify-between text-[#777777] mb-2">
-                  <span className="text-[10px] uppercase font-mono tracking-widest">Total Applications</span>
-                  <FiUsers className="text-base text-[#111111]" />
-                </div>
-                <span className="font-cinzel text-3xl text-[#111111] font-bold block">
-                  {metrics.totalRegistrations}
-                </span>
-                <span className="text-[11px] text-[#777777] font-mono mt-1 block">
-                  All Academy Inquiries
-                </span>
-              </div>
+        {/* ── SIDEBAR: Category Picker ── */}
+        <aside className="w-full lg:w-64 bg-[#0d0d10] border-b lg:border-b-0 lg:border-r border-[#22222a] p-4 lg:p-6 flex flex-row lg:flex-col gap-2 overflow-x-auto lg:overflow-visible shrink-0">
+          <span className="hidden lg:block text-[10px] uppercase tracking-[0.3em] font-mono-tech text-[#555550] mb-3 shrink-0">
+            Categories
+          </span>
+          {UPLOAD_CATEGORIES.map((cat) => {
+            const count = uploads.filter((u) => u.category === cat.id).length;
+            const isActive = activeCategory === cat.id;
+            return (
+              <button
+                key={cat.id}
+                onClick={() => setActiveCategory(cat.id)}
+                className={`flex items-center justify-between shrink-0 lg:w-full px-4 py-3 text-xs font-mono-tech tracking-widest uppercase border transition-all text-left cursor-pointer whitespace-nowrap ${
+                  isActive
+                    ? 'border-[#c5a880] bg-[#c5a880]/10 text-[#c5a880]'
+                    : 'border-[#22222a] text-[#888780] hover:border-[#3a3a42] hover:text-[#F7F6F2]'
+                }`}
+              >
+                <span>{cat.label}</span>
+                {count > 0 && (
+                  <span className={`ml-2 text-[10px] px-1.5 py-0.5 rounded ${isActive ? 'bg-[#c5a880]/20 text-[#c5a880]' : 'bg-[#22222a] text-[#555550]'}`}>
+                    {count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </aside>
 
-              <div className="p-6 bg-[#EFEDE7] border border-[#D8D6D0]">
-                <div className="flex items-center justify-between text-[#777777] mb-2">
-                  <span className="text-[10px] uppercase font-mono tracking-widest">Active Students</span>
-                  <FiCheckCircle className="text-base text-[#111111]" />
-                </div>
-                <span className="font-cinzel text-3xl text-[#111111] font-bold block">
-                  {metrics.activeStudents}
-                </span>
-                <span className="text-[11px] text-[#777777] font-mono mt-1 block">
-                  Enrolled / Confirmed
-                </span>
-              </div>
+        {/* ── MAIN CONTENT ── */}
+        <main className="flex-1 p-6 sm:p-8 lg:p-10 overflow-y-auto">
 
-              <div className="p-6 bg-[#EFEDE7] border border-[#D8D6D0]">
-                <div className="flex items-center justify-between text-[#777777] mb-2">
-                  <span className="text-[10px] uppercase font-mono tracking-widest">Artwork Orders</span>
-                  <FiShoppingBag className="text-base text-[#111111]" />
-                </div>
-                <span className="font-cinzel text-3xl text-[#111111] font-bold block">
-                  {metrics.artworkOrders}
-                </span>
-                <span className="text-[11px] text-[#777777] font-mono mt-1 block">
-                  Portraits & Tattoos
-                </span>
-              </div>
-
-              <div className="p-6 bg-[#EFEDE7] border border-[#D8D6D0]">
-                <div className="flex items-center justify-between text-[#777777] mb-2">
-                  <span className="text-[10px] uppercase font-mono tracking-widest">Artworks Sold</span>
-                  <FiTrendingUp className="text-base text-[#111111]" />
-                </div>
-                <span className="font-cinzel text-3xl text-[#111111] font-bold block">
-                  {metrics.productsSold}
-                </span>
-                <span className="text-[11px] text-[#777777] font-mono mt-1 block">
-                  Direct Studio Sales
-                </span>
-              </div>
-
-              <div className="p-6 bg-[#EFEDE7] border border-[#111111]">
-                <div className="flex items-center justify-between text-[#777777] mb-2">
-                  <span className="text-[10px] uppercase font-mono tracking-widest text-[#111111] font-bold">Total Revenue</span>
-                  <FiDollarSign className="text-base text-[#111111]" />
-                </div>
-                <span className="font-cinzel text-3xl text-[#111111] font-bold block">
-                  ₹{metrics.totalRevenue.toLocaleString()}
-                </span>
-                <span className="text-[11px] text-[#777777] font-mono mt-1 block">
-                  Confirmed Collections
-                </span>
-              </div>
-            </div>
-
-            {/* Quick Actions & Recent Tables */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Recent Registrations Card */}
-              <div className="bg-white border border-[#e4e4e7] p-6 space-y-4">
-                <div className="flex items-center justify-between pb-3 border-b border-[#e4e4e7]">
-                  <h4 className="font-cinzel text-base font-semibold text-[#0a0a0a] uppercase tracking-wider">
-                    Recent Academy Applications
-                  </h4>
-                  <button
-                    onClick={() => setActiveTab('registrations')}
-                    className="text-xs uppercase font-mono text-[#111111] hover:underline"
-                  >
-                    View All →
-                  </button>
-                </div>
-
-                <div className="space-y-3">
-                  {registrations.slice(0, 4).map((r) => (
-                    <div key={r.id} className="p-3 bg-[#F7F6F2] border border-[#D8D6D0] flex items-center justify-between text-xs">
-                      <div>
-                        <strong className="text-[#111111] block">{r.applicantName}</strong>
-                        <span className="text-[#777777] text-[11px]">{r.courseName}</span>
-                      </div>
-                      <span className="px-2 py-0.5 border border-[#D8D6D0] font-mono text-[10px] uppercase">
-                        {r.status}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Recent Commissions Card */}
-              <div className="bg-[#EFEDE7] border border-[#D8D6D0] p-6 space-y-4">
-                <div className="flex items-center justify-between pb-3 border-b border-[#D8D6D0]">
-                  <h4 className="font-cinzel text-base font-semibold text-[#111111] uppercase tracking-wider">
-                    Recent Commission Inquiries
-                  </h4>
-                  <button
-                    onClick={() => setActiveTab('orders')}
-                    className="text-xs uppercase font-mono text-[#111111] hover:underline"
-                  >
-                    View All →
-                  </button>
-                </div>
-
-                <div className="space-y-3">
-                  {orders.slice(0, 4).map((o) => (
-                    <div key={o.id} className="p-3 bg-[#F7F6F2] border border-[#D8D6D0] flex items-center justify-between text-xs">
-                      <div>
-                        <strong className="text-[#111111] block">{o.customerName}</strong>
-                        <span className="text-[#777777] text-[11px]">{o.artworkType}</span>
-                      </div>
-                      <span className="font-mono text-[#111111] font-bold">
-                        {o.formattedPrice || `₹${o.price?.toLocaleString()}`}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+          {/* Category Header */}
+          <div className="mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+            <div>
+              <span className="text-[10px] uppercase tracking-[0.3em] font-mono-tech text-[#c5a880] block mb-1">
+                Uploading to
+              </span>
+              <h1 className="font-cinzel text-3xl sm:text-4xl text-[#F7F6F2] font-normal">
+                {catInfo.label}
+              </h1>
+              <p className="text-sm text-[#888780] font-mono-tech mt-1">
+                {catInfo.medium} · {categoryUploads.length} image{categoryUploads.length !== 1 ? 's' : ''}
+              </p>
             </div>
           </div>
-        )}
 
-        {/* REGISTRATIONS TAB */}
-        {activeTab === 'registrations' && (
-          <div className="space-y-6">
-            {/* Search & Filter Bar */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-[#EFEDE7] p-4 border border-[#D8D6D0]">
-              <div className="relative">
-                <FiSearch className="absolute left-3.5 top-3 text-[#777777]" />
-                <input
-                  type="text"
-                  placeholder="Search applicant name, email, ID..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2 text-xs border border-[#D8D6D0] bg-[#F7F6F2] focus:border-[#111111] outline-none"
-                />
+          {/* ── DROP ZONE ── */}
+          <div
+            onDrop={onDrop}
+            onDragOver={onDragOver}
+            onDragLeave={onDragLeave}
+            onClick={() => !uploading && fileInputRef.current?.click()}
+            className={`relative w-full border-2 border-dashed rounded-none transition-all duration-300 cursor-pointer mb-10 ${
+              dragging
+                ? 'border-[#c5a880] bg-[#c5a880]/5'
+                : 'border-[#2a2a32] bg-[#0d0d10] hover:border-[#c5a880]/50 hover:bg-[#c5a880]/3'
+            }`}
+          >
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              accept="image/*,video/*"
+              className="hidden"
+              onChange={(e) => processFiles(e.target.files)}
+            />
+            <div className="flex flex-col items-center justify-center py-16 px-8 text-center select-none pointer-events-none">
+              <div className={`w-16 h-16 border-2 flex items-center justify-center mb-5 transition-colors ${dragging ? 'border-[#c5a880] text-[#c5a880]' : 'border-[#3a3a42] text-[#555550]'}`}>
+                {uploading ? (
+                  <div className="w-6 h-6 border-2 border-[#c5a880] border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <FiUploadCloud className="w-7 h-7" />
+                )}
               </div>
-
-              <select
-                value={courseFilter}
-                onChange={(e) => setCourseFilter(e.target.value)}
-                className="w-full px-3 py-2 text-xs border border-[#D8D6D0] bg-[#F7F6F2] outline-none"
-              >
-                <option value="all">All Courses</option>
-                {artCourses.map((c) => (
-                  <option key={c.id} value={c.id}>{c.title}</option>
-                ))}
-              </select>
-
-              <select
-                value={regStatusFilter}
-                onChange={(e) => setRegStatusFilter(e.target.value)}
-                className="w-full px-3 py-2 text-xs border border-[#D8D6D0] bg-[#F7F6F2] outline-none"
-              >
-                <option value="all">All Statuses</option>
-                <option value="New">New</option>
-                <option value="Under Review">Under Review</option>
-                <option value="Interview Scheduled">Interview Scheduled</option>
-                <option value="Confirmed">Confirmed</option>
-                <option value="Enrolled">Enrolled</option>
-                <option value="Completed">Completed</option>
-              </select>
-            </div>
-
-            {/* Table or Empty State */}
-            {filteredRegistrations.length > 0 ? (
-              <div className="bg-white border border-[#e4e4e7] overflow-x-auto">
-                <table className="w-full text-xs text-left">
-                  <thead className="bg-[#fafafa] border-b border-[#e4e4e7] uppercase font-mono text-[10px] text-[#71717a]">
-                    <tr>
-                      <th className="py-3 px-4">Applicant</th>
-                      <th className="py-3 px-4">Program</th>
-                      <th className="py-3 px-4">Tuition</th>
-                      <th className="py-3 px-4">Preferred Date</th>
-                      <th className="py-3 px-4">Status</th>
-                      <th className="py-3 px-4 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[#e4e4e7]">
-                    {filteredRegistrations.map((r) => (
-                      <tr key={r.id} className="hover:bg-[#fafafa] transition-colors">
-                        <td className="py-3.5 px-4">
-                          <strong className="text-[#0a0a0a] block">{r.applicantName}</strong>
-                          <span className="text-[#71717a] text-[11px] font-mono">{r.phone} • {r.city}</span>
-                        </td>
-                        <td className="py-3.5 px-4 font-medium">{r.courseName}</td>
-                        <td className="py-3.5 px-4 font-mono font-semibold">{r.formattedFee || `₹${r.fee?.toLocaleString()}`}</td>
-                        <td className="py-3.5 px-4 font-mono">{r.preferredStartDate}</td>
-                        <td className="py-3.5 px-4">
-                          <select
-                            value={r.status}
-                            onChange={(e) => handleRegStatusChange(r.id, e.target.value)}
-                            className="px-2 py-1 text-[11px] border border-[#e4e4e7] bg-white font-mono"
-                          >
-                            <option value="New">New</option>
-                            <option value="Under Review">Under Review</option>
-                            <option value="Confirmed">Confirmed</option>
-                            <option value="Enrolled">Enrolled</option>
-                            <option value="Completed">Completed</option>
-                          </select>
-                        </td>
-                        <td className="py-3.5 px-4 text-right space-x-2">
-                          <button
-                            onClick={() => setSelectedReg(r)}
-                            className="px-2 py-1 text-[10px] border border-[#e4e4e7] hover:border-[#0a0a0a] font-mono"
-                          >
-                            Details
-                          </button>
-                          <button
-                            onClick={() => confirmDeleteReg(r.id)}
-                            className="p-1 text-[#dc2626] hover:text-[#991b1b]"
-                            title="Delete"
-                          >
-                            <FiTrash2 className="text-xs" />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <EmptyState
-                title="No Registrations Found"
-                subtitle="No applicant records match your active search and filter criteria."
-                actionLabel="Clear Filters"
-                onAction={() => {
-                  setSearchQuery('');
-                  setCourseFilter('all');
-                  setRegStatusFilter('all');
-                }}
-              />
-            )}
-          </div>
-        )}
-
-        {/* ORDERS TAB */}
-        {activeTab === 'orders' && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-white p-4 border border-[#e4e4e7]">
-              <div className="relative">
-                <FiSearch className="absolute left-3.5 top-3 text-[#71717a]" />
-                <input
-                  type="text"
-                  placeholder="Search customer name, ID, email..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2 text-xs border border-[#e4e4e7] focus:border-[#0a0a0a] outline-none"
-                />
-              </div>
-
-              <select
-                value={orderStatusFilter}
-                onChange={(e) => setOrderStatusFilter(e.target.value)}
-                className="w-full px-3 py-2 text-xs border border-[#e4e4e7] bg-white outline-none"
-              >
-                <option value="all">All Order Statuses</option>
-                <option value="New Request">New Request</option>
-                <option value="Confirmed">Confirmed</option>
-                <option value="In Progress">In Progress</option>
-                <option value="Completed">Completed</option>
-              </select>
-            </div>
-
-            {filteredOrders.length > 0 ? (
-              <div className="bg-white border border-[#e4e4e7] overflow-x-auto">
-                <table className="w-full text-xs text-left">
-                  <thead className="bg-[#fafafa] border-b border-[#e4e4e7] uppercase font-mono text-[10px] text-[#71717a]">
-                    <tr>
-                      <th className="py-3 px-4">Client</th>
-                      <th className="py-3 px-4">Discipline / Size</th>
-                      <th className="py-3 px-4">Quotation</th>
-                      <th className="py-3 px-4">Status</th>
-                      <th className="py-3 px-4 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[#e4e4e7]">
-                    {filteredOrders.map((o) => (
-                      <tr key={o.id} className="hover:bg-[#fafafa] transition-colors">
-                        <td className="py-3.5 px-4">
-                          <strong className="text-[#0a0a0a] block">{o.customerName}</strong>
-                          <span className="text-[#71717a] text-[11px] font-mono">{o.phone} • {o.email}</span>
-                        </td>
-                        <td className="py-3.5 px-4">
-                          <span className="block font-medium">{o.artworkType}</span>
-                          <span className="text-[#71717a] text-[11px]">{o.typeCategory} • {o.size}</span>
-                        </td>
-                        <td className="py-3.5 px-4 font-mono font-semibold">
-                          {o.formattedPrice || `₹${o.price?.toLocaleString()}`}
-                        </td>
-                        <td className="py-3.5 px-4">
-                          <select
-                            value={o.status}
-                            onChange={(e) => handleOrderStatusChange(o.id, e.target.value)}
-                            className="px-2 py-1 text-[11px] border border-[#e4e4e7] bg-white font-mono"
-                          >
-                            <option value="New Request">New Request</option>
-                            <option value="Confirmed">Confirmed</option>
-                            <option value="In Progress">In Progress</option>
-                            <option value="Completed">Completed</option>
-                          </select>
-                        </td>
-                        <td className="py-3.5 px-4 text-right">
-                          <button
-                            onClick={() => confirmDeleteOrder(o.id)}
-                            className="p-1 text-[#dc2626] hover:text-[#991b1b]"
-                            title="Delete"
-                          >
-                            <FiTrash2 className="text-xs" />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <EmptyState
-                title="No Commission Orders Found"
-                subtitle="No commission requests currently match the filter criteria."
-                actionLabel="Clear Filters"
-                onAction={() => {
-                  setSearchQuery('');
-                  setOrderStatusFilter('all');
-                }}
-              />
-            )}
-          </div>
-        )}
-
-        {/* SALES TAB */}
-        {activeTab === 'sales' && (
-          <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-4 border border-[#e4e4e7]">
-              <div className="relative w-full sm:w-80">
-                <FiSearch className="absolute left-3.5 top-3 text-[#71717a]" />
-                <input
-                  type="text"
-                  placeholder="Search sales transactions..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2 text-xs border border-[#e4e4e7] focus:border-[#0a0a0a] outline-none"
-                />
-              </div>
-
-              <Button
-                variant="primary"
-                size="sm"
-                icon={FiPlus}
-                onClick={() => setShowAddSaleModal(true)}
-              >
-                Add Sale Entry
-              </Button>
-            </div>
-
-            {filteredSales.length > 0 ? (
-              <div className="bg-white border border-[#e4e4e7] overflow-x-auto">
-                <table className="w-full text-xs text-left">
-                  <thead className="bg-[#fafafa] border-b border-[#e4e4e7] uppercase font-mono text-[10px] text-[#71717a]">
-                    <tr>
-                      <th className="py-3 px-4">Item / Artwork</th>
-                      <th className="py-3 px-4">Customer</th>
-                      <th className="py-3 px-4">Date</th>
-                      <th className="py-3 px-4">Price</th>
-                      <th className="py-3 px-4">Status</th>
-                      <th className="py-3 px-4 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[#e4e4e7]">
-                    {filteredSales.map((s) => (
-                      <tr key={s.id} className="hover:bg-[#fafafa] transition-colors">
-                        <td className="py-3.5 px-4 font-medium">{s.productName}</td>
-                        <td className="py-3.5 px-4 text-[#71717a]">{s.customer}</td>
-                        <td className="py-3.5 px-4 font-mono">{s.date}</td>
-                        <td className="py-3.5 px-4 font-mono font-semibold">₹{(Number(s.sellingPrice) * (Number(s.quantity) || 1)).toLocaleString()}</td>
-                        <td className="py-3.5 px-4">
-                          <select
-                            value={s.saleStatus}
-                            onChange={(e) => handleSaleStatusChange(s.id, e.target.value)}
-                            className="px-2 py-1 text-[11px] border border-[#e4e4e7] bg-white font-mono"
-                          >
-                            <option value="Paid">Paid</option>
-                            <option value="Delivered">Delivered</option>
-                            <option value="Pending">Pending</option>
-                          </select>
-                        </td>
-                        <td className="py-3.5 px-4 text-right">
-                          <button
-                            onClick={() => confirmDeleteSale(s.id)}
-                            className="p-1 text-[#dc2626] hover:text-[#991b1b]"
-                            title="Delete"
-                          >
-                            <FiTrash2 className="text-xs" />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <EmptyState
-                title="No Sales Transactions"
-                subtitle="No recorded artwork sales found in the studio ledger."
-                actionLabel="Record New Sale"
-                onAction={() => setShowAddSaleModal(true)}
-              />
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* APPLICANT DETAIL MODAL (With Back button on LEFT) */}
-      {selectedReg && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white border border-[#e4e4e7] p-8 max-w-xl w-full space-y-6 shadow-2xl text-left">
-            <div className="flex items-center justify-between pb-4 border-b border-[#e4e4e7]">
-              <BackButton
-                onClick={() => setSelectedReg(null)}
-                label="Back"
-              />
-              <span className="font-mono text-xs text-[#71717a]">{selectedReg.id}</span>
-            </div>
-
-            <div className="space-y-4 text-xs">
-              <h4 className="font-cinzel text-xl text-[#0a0a0a]">{selectedReg.applicantName}</h4>
-              <div className="grid grid-cols-2 gap-3 p-4 bg-[#fafafa] border border-[#e4e4e7] font-mono">
-                <div><span className="text-[#71717a] block">Phone:</span> {selectedReg.phone}</div>
-                <div><span className="text-[#71717a] block">Email:</span> {selectedReg.email}</div>
-                <div><span className="text-[#71717a] block">City:</span> {selectedReg.city}</div>
-                <div><span className="text-[#71717a] block">Program:</span> {selectedReg.courseName}</div>
-              </div>
-              {selectedReg.notes && (
-                <div>
-                  <span className="text-[10px] uppercase tracking-widest text-[#71717a] font-mono block mb-1">Notes</span>
-                  <p className="p-3 bg-[#fafafa] border border-[#e4e4e7] text-[#52525b] leading-relaxed">{selectedReg.notes}</p>
-                </div>
+              <p className="font-cinzel text-lg text-[#F7F6F2] mb-2">
+                {uploading ? 'Processing...' : dragging ? 'Drop to upload' : 'Drop images here'}
+              </p>
+              <p className="text-sm text-[#888780] font-mono-tech">
+                or <span className="text-[#c5a880] underline underline-offset-2">click to browse</span>
+              </p>
+              <p className="text-xs text-[#555550] font-mono-tech mt-3 uppercase tracking-widest">
+                JPG · PNG · WEBP · MP4 · MOV · Multiple files supported
+              </p>
+              {dragging && (
+                <div className="absolute inset-0 border-2 border-[#c5a880] pointer-events-none" />
               )}
             </div>
-
-            <div className="pt-4 border-t border-[#e4e4e7] flex justify-end">
-              <Button variant="primary" size="sm" onClick={() => setSelectedReg(null)}>
-                Close Details
-              </Button>
-            </div>
           </div>
-        </div>
-      )}
 
-      {/* NEW SALE ENTRY MODAL */}
-      {showAddSaleModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <form onSubmit={handleCreateSale} className="bg-white border border-[#e4e4e7] p-8 max-w-md w-full space-y-4 shadow-2xl text-left">
-            <div className="flex items-center justify-between pb-4 border-b border-[#e4e4e7]">
-              <BackButton onClick={() => setShowAddSaleModal(false)} label="Back" />
-              <span className="font-cinzel text-xs uppercase tracking-wider font-semibold">New Sale</span>
+          {/* ── UPLOADED IMAGES GRID ── */}
+          {categoryUploads.length > 0 ? (
+            <>
+              <div className="flex items-center justify-between mb-5">
+                <span className="text-xs uppercase tracking-[0.25em] font-mono-tech text-[#888780]">
+                  Uploaded · {categoryUploads.length} items
+                </span>
+                <button
+                  onClick={() => {
+                    if (window.confirm(`Delete all ${categoryUploads.length} images in "${catInfo.label}"?`)) {
+                      setUploads((prev) => prev.filter((u) => u.category !== activeCategory));
+                      showToast('success', `All ${catInfo.label} images removed.`);
+                    }
+                  }}
+                  className="text-xs font-mono-tech uppercase tracking-widest text-[#555550] hover:text-red-400 transition-colors flex items-center gap-1.5 cursor-pointer"
+                >
+                  <FiTrash2 className="w-3 h-3" />
+                  Clear all
+                </button>
+              </div>
+
+              <motion.div
+                layout
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5"
+              >
+                <AnimatePresence>
+                  {categoryUploads.map((item) => (
+                    <motion.div
+                      key={item.id}
+                      layout
+                      initial={{ opacity: 0, y: 16 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      transition={{ duration: 0.3 }}
+                      className="group relative bg-[#111115] border border-[#22222a] hover:border-[#c5a880]/50 transition-all duration-300"
+                    >
+                      {/* Thumbnail */}
+                      <div
+                        className="relative h-52 overflow-hidden bg-[#0a0a0c] cursor-pointer"
+                        onClick={() => setPreview(item)}
+                      >
+                        {item.type === 'video' ? (
+                          <video
+                            src={item.src}
+                            className="w-full h-full object-cover"
+                            muted
+                          />
+                        ) : (
+                          <img
+                            src={item.src}
+                            alt={item.title}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          />
+                        )}
+                        {/* Hover overlay */}
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
+                          <div className="w-10 h-10 border border-[#c5a880]/60 flex items-center justify-center">
+                            <FiEye className="text-[#c5a880] w-4 h-4" />
+                          </div>
+                        </div>
+                        {/* Category badge */}
+                        <span className="absolute top-3 left-3 text-[9px] uppercase tracking-[0.2em] font-mono-tech text-[#c5a880] bg-[#09090b]/90 px-2 py-1 border border-[#c5a880]/30">
+                          {item.categoryName}
+                        </span>
+                        {/* Delete */}
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setDeleteId(item.id); }}
+                          className="absolute top-3 right-3 w-8 h-8 bg-[#09090b]/90 border border-[#22222a] flex items-center justify-center text-[#555550] hover:text-red-400 hover:border-red-400/40 transition-all opacity-0 group-hover:opacity-100 cursor-pointer"
+                        >
+                          <FiTrash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+
+                      {/* Meta */}
+                      <div className="p-4 space-y-2">
+                        <input
+                          type="text"
+                          value={item.title}
+                          onChange={(e) => handleTitleEdit(item.id, e.target.value)}
+                          className="w-full bg-transparent font-cinzel text-sm text-[#F7F6F2] border-b border-transparent hover:border-[#2a2a32] focus:border-[#c5a880] focus:outline-none py-0.5 transition-colors"
+                          title="Click to edit title"
+                        />
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] text-[#555550] font-mono-tech uppercase tracking-widest">
+                            {item.fileSize ? fmtSize(item.fileSize) : '—'}
+                          </span>
+                          <input
+                            type="text"
+                            value={item.fee}
+                            onChange={(e) => handleFeeEdit(item.id, e.target.value)}
+                            className="text-[10px] text-[#c5a880] font-mono-tech bg-transparent border-b border-transparent hover:border-[#2a2a32] focus:border-[#c5a880] focus:outline-none text-right w-28 transition-colors"
+                            title="Click to edit price"
+                          />
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </motion.div>
+            </>
+          ) : (
+            /* Empty state */
+            <div className="flex flex-col items-center justify-center py-20 text-center border border-dashed border-[#22222a]">
+              <div className="w-14 h-14 border border-[#2a2a32] flex items-center justify-center mb-4">
+                <FiImage className="w-6 h-6 text-[#555550]" />
+              </div>
+              <p className="font-cinzel text-lg text-[#888780] mb-1">No images yet</p>
+              <p className="text-xs font-mono-tech text-[#555550] uppercase tracking-widest">
+                Upload images above to add them to {catInfo.label}
+              </p>
             </div>
+          )}
+        </main>
+      </div>
 
-            <CustomInput
-              label="Artwork / Item Title"
-              value={newSaleData.productName}
-              onChange={(e) => setNewSaleData({ ...newSaleData, productName: e.target.value })}
-              placeholder="e.g. A3 Charcoal Portrait"
-              required
-            />
+      {/* ── DELETE CONFIRM MODAL ── */}
+      <AnimatePresence>
+        {deleteId && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-6"
+            onClick={() => setDeleteId(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-[#111115] border border-[#22222a] p-8 max-w-sm w-full shadow-2xl"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <FiAlertCircle className="text-red-400 w-5 h-5 shrink-0" />
+                <h3 className="font-cinzel text-lg text-[#F7F6F2]">Remove Image?</h3>
+              </div>
+              <p className="text-sm text-[#888780] mb-6 font-mono-tech">
+                This will remove the image from the admin library. It won't affect the main gallery index.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => handleDelete(deleteId)}
+                  className="flex-1 py-3 text-xs uppercase tracking-widest font-mono-tech font-semibold bg-red-500/90 hover:bg-red-500 text-white transition-colors cursor-pointer"
+                >
+                  Delete
+                </button>
+                <button
+                  onClick={() => setDeleteId(null)}
+                  className="flex-1 py-3 text-xs uppercase tracking-widest font-mono-tech border border-[#22222a] text-[#888780] hover:text-[#F7F6F2] transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-            <CustomInput
-              label="Selling Price (₹)"
-              type="number"
-              value={newSaleData.sellingPrice}
-              onChange={(e) => setNewSaleData({ ...newSaleData, sellingPrice: e.target.value })}
-              placeholder="3500"
-              required
-            />
+      {/* ── FULLSCREEN PREVIEW ── */}
+      <AnimatePresence>
+        {preview && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-6"
+            onClick={() => setPreview(null)}
+          >
+            <button
+              onClick={() => setPreview(null)}
+              className="absolute top-5 right-5 w-10 h-10 border border-[#22222a] flex items-center justify-center text-[#888780] hover:text-[#F7F6F2] transition-colors cursor-pointer"
+            >
+              <FiX className="w-5 h-5" />
+            </button>
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="max-w-4xl w-full flex flex-col items-center gap-4"
+            >
+              {preview.type === 'video' ? (
+                <video src={preview.src} controls autoPlay className="max-h-[80vh] max-w-full rounded shadow-2xl" />
+              ) : (
+                <img src={preview.src} alt={preview.title} className="max-h-[80vh] max-w-full object-contain shadow-2xl" />
+              )}
+              <div className="text-center">
+                <p className="font-cinzel text-lg text-[#F7F6F2]">{preview.title}</p>
+                <p className="text-xs text-[#888780] font-mono-tech uppercase tracking-widest mt-1">
+                  {preview.categoryName} · {preview.medium}
+                </p>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-            <CustomInput
-              label="Client Name"
-              value={newSaleData.customer}
-              onChange={(e) => setNewSaleData({ ...newSaleData, customer: e.target.value })}
-              placeholder="Customer Name"
-              required
-            />
-
-            <div className="pt-4 flex items-center justify-end gap-3 border-t border-[#e4e4e7]">
-              <Button variant="ghost" size="sm" onClick={() => setShowAddSaleModal(false)}>
-                Cancel
-              </Button>
-              <Button type="submit" variant="primary" size="sm">
-                Record Transaction
-              </Button>
-            </div>
-          </form>
-        </div>
-      )}
-
-      {/* CUSTOM DESTRUCTIVE WARNING MODAL */}
-      <WarningModal
-        isOpen={warningModal.isOpen}
-        title={warningModal.title}
-        description={warningModal.description}
-        onConfirm={warningModal.onConfirm}
-        onClose={() => setWarningModal({ isOpen: false })}
-      />
+      {/* ── TOAST ── */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-4 border shadow-2xl text-sm font-mono-tech ${
+              toast.type === 'success'
+                ? 'bg-[#111115] border-[#c5a880]/60 text-[#c5a880]'
+                : 'bg-[#111115] border-red-400/60 text-red-400'
+            }`}
+          >
+            {toast.type === 'success'
+              ? <FiCheckCircle className="w-4 h-4 shrink-0" />
+              : <FiAlertCircle className="w-4 h-4 shrink-0" />}
+            {toast.msg}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

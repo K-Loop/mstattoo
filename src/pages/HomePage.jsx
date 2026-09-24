@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Hero from '../components/Hero';
 import CuratorialCreed from '../components/CuratorialCreed';
+import CornerGlowContainer from '../components/common/CornerGlowContainer';
 import { imageAssets } from '../data/imageAssets';
 import { GALLERY_MEDIA } from '../data/galleryData';
 
@@ -10,10 +11,12 @@ export default function HomePage() {
   const navigate = useNavigate();
 
   // Curate 4 standout real artworks/tattoos for the Selected Work preview
-  const selectedPreviewWorks = GALLERY_MEDIA.filter((item) =>
-    ['acrylic-01', 'crystal-01', 'glitter-01', 'pencil-01', 'tattoo-01', 'tattoo-02'].includes(item.id) ||
-    item.id.includes('pencil-01') || item.id.includes('crystal-01') || item.id.includes('acrylic-01')
-  ).slice(0, 4);
+  const selectedPreviewWorks = [
+    GALLERY_MEDIA.find((item) => item.category === 'tattoos') || GALLERY_MEDIA[0],
+    GALLERY_MEDIA.find((item) => item.id.includes('pencil-01')) || GALLERY_MEDIA[1],
+    GALLERY_MEDIA.find((item) => item.id.includes('crystal-01')) || GALLERY_MEDIA[2],
+    GALLERY_MEDIA.find((item) => item.id.includes('acrylic-01')) || GALLERY_MEDIA[3],
+  ].filter(Boolean);
 
   return (
     <div className="bg-[#09090b] text-[#E5E3DC]">
@@ -41,118 +44,127 @@ export default function HomePage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10">
-            {/* 1. Tattoos */}
+            {/* 1. Tattoos - Entire Card Clickable */}
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8 }}
-              className="group flex flex-col justify-between bg-[#111115] border border-[#22222a] hover:border-[#c5a880]/60 transition-all duration-500 overflow-hidden shadow-xl"
+              className="h-full"
             >
-              <div className="relative h-72 sm:h-80 overflow-hidden bg-[#0a0a0c]">
-                <img
-                  src={imageAssets.pillars.tattoo}
-                  alt="Tattoos"
-                  className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
-                  loading="lazy"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#111115] via-transparent to-transparent opacity-80" />
-              </div>
-              <div className="p-8 sm:p-10 space-y-4 flex-grow flex flex-col justify-between">
-                <div>
-                  <h3 className="font-cinzel text-2xl sm:text-3xl text-[#F7F6F2] font-normal mb-2 group-hover:text-[#c5a880] transition-colors">
-                    TATTOOS
-                  </h3>
-                  <p className="text-base sm:text-lg text-[#d4d3cc] font-light">
-                    Custom tattoo designs made for you with clinical sterile precision.
-                  </p>
+              <CornerGlowContainer
+                onClick={() => navigate('/gallery?category=tattoos')}
+                dataCursor="view"
+                className="h-full bg-[#111115] border border-[#22222a] hover:border-[#c5a880]/60 transition-all duration-500 shadow-xl flex flex-col justify-between"
+              >
+                <div className="relative h-72 sm:h-80 overflow-hidden bg-[#0a0a0c]">
+                  <img
+                    src={imageAssets.pillars.tattoo}
+                    alt="Tattoos"
+                    className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#111115] via-transparent to-transparent opacity-80" />
                 </div>
-                <div className="pt-4 border-t border-[#22222a]">
-                  <Link
-                    to="/gallery"
-                    className="inline-flex items-center text-sm sm:text-base tracking-[0.2em] text-[#c5a880] font-semibold uppercase group-hover:text-[#F7F6F2] transition-colors font-mono-tech"
-                  >
-                    <span>EXPLORE TATTOOS</span>
-                    <span className="ml-2.5">→</span>
-                  </Link>
+                <div className="p-8 sm:p-10 space-y-4 flex-grow flex flex-col justify-between">
+                  <div>
+                    <h3 className="font-cinzel text-2xl sm:text-3xl text-[#F7F6F2] font-normal mb-2 group-hover:text-[#c5a880] transition-colors">
+                      TATTOOS
+                    </h3>
+                    <p className="text-base sm:text-lg text-[#d4d3cc] font-light">
+                      Custom tattoo designs made for you with clinical sterile precision.
+                    </p>
+                  </div>
+                  <div className="pt-4 border-t border-[#22222a]">
+                    <span className="inline-flex items-center text-sm sm:text-base tracking-[0.2em] text-[#c5a880] font-semibold uppercase group-hover:text-[#F7F6F2] transition-colors font-mono-tech">
+                      <span>EXPLORE TATTOOS</span>
+                      <span className="ml-2.5">→</span>
+                    </span>
+                  </div>
                 </div>
-              </div>
+              </CornerGlowContainer>
             </motion.div>
 
-            {/* 2. Art */}
+            {/* 2. Art - Entire Card Clickable */}
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8, delay: 0.12 }}
-              className="group flex flex-col justify-between bg-[#111115] border border-[#22222a] hover:border-[#c5a880]/60 transition-all duration-500 overflow-hidden shadow-xl"
+              className="h-full"
             >
-              <div className="relative h-72 sm:h-80 overflow-hidden bg-[#0a0a0c]">
-                <img
-                  src={imageAssets.pillars.artwork}
-                  alt="Fine Art"
-                  className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
-                  loading="lazy"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#111115] via-transparent to-transparent opacity-80" />
-              </div>
-              <div className="p-8 sm:p-10 space-y-4 flex-grow flex flex-col justify-between">
-                <div>
-                  <h3 className="font-cinzel text-2xl sm:text-3xl text-[#F7F6F2] font-normal mb-2 group-hover:text-[#c5a880] transition-colors">
-                    FINE ART
-                  </h3>
-                  <p className="text-base sm:text-lg text-[#d4d3cc] font-light">
-                    Graphite portraits, colour pencils, crystal stone art and wall murals.
-                  </p>
+              <CornerGlowContainer
+                onClick={() => navigate('/gallery?category=graphite-pencil')}
+                dataCursor="view"
+                className="h-full bg-[#111115] border border-[#22222a] hover:border-[#c5a880]/60 transition-all duration-500 shadow-xl flex flex-col justify-between"
+              >
+                <div className="relative h-72 sm:h-80 overflow-hidden bg-[#0a0a0c]">
+                  <img
+                    src={imageAssets.pillars.artwork}
+                    alt="Fine Art"
+                    className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#111115] via-transparent to-transparent opacity-80" />
                 </div>
-                <div className="pt-4 border-t border-[#22222a]">
-                  <Link
-                    to="/gallery"
-                    className="inline-flex items-center text-sm sm:text-base tracking-[0.2em] text-[#c5a880] font-semibold uppercase group-hover:text-[#F7F6F2] transition-colors font-mono-tech"
-                  >
-                    <span>VIEW ARTWORKS</span>
-                    <span className="ml-2.5">→</span>
-                  </Link>
+                <div className="p-8 sm:p-10 space-y-4 flex-grow flex flex-col justify-between">
+                  <div>
+                    <h3 className="font-cinzel text-2xl sm:text-3xl text-[#F7F6F2] font-normal mb-2 group-hover:text-[#c5a880] transition-colors">
+                      FINE ART
+                    </h3>
+                    <p className="text-base sm:text-lg text-[#d4d3cc] font-light">
+                      Graphite portraits, colour pencils, crystal stone art and wall murals.
+                    </p>
+                  </div>
+                  <div className="pt-4 border-t border-[#22222a]">
+                    <span className="inline-flex items-center text-sm sm:text-base tracking-[0.2em] text-[#c5a880] font-semibold uppercase group-hover:text-[#F7F6F2] transition-colors font-mono-tech">
+                      <span>VIEW ARTWORKS</span>
+                      <span className="ml-2.5">→</span>
+                    </span>
+                  </div>
                 </div>
-              </div>
+              </CornerGlowContainer>
             </motion.div>
 
-            {/* 3. Classes */}
+            {/* 3. Classes - Entire Card Clickable */}
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8, delay: 0.24 }}
-              className="group flex flex-col justify-between bg-[#111115] border border-[#22222a] hover:border-[#c5a880]/60 transition-all duration-500 overflow-hidden shadow-xl"
+              className="h-full"
             >
-              <div className="relative h-72 sm:h-80 overflow-hidden bg-[#0a0a0c]">
-                <img
-                  src={imageAssets.pillars.academy}
-                  alt="Academy"
-                  className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
-                  loading="lazy"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#111115] via-transparent to-transparent opacity-80" />
-              </div>
-              <div className="p-8 sm:p-10 space-y-4 flex-grow flex flex-col justify-between">
-                <div>
-                  <h3 className="font-cinzel text-2xl sm:text-3xl text-[#F7F6F2] font-normal mb-2 group-hover:text-[#c5a880] transition-colors">
-                    CLASSES & ACADEMY
-                  </h3>
-                  <p className="text-base sm:text-lg text-[#d4d3cc] font-light">
-                    Learn drawing, painting and tattooing from master artists.
-                  </p>
+              <CornerGlowContainer
+                onClick={() => navigate('/classes')}
+                dataCursor="view"
+                className="h-full bg-[#111115] border border-[#22222a] hover:border-[#c5a880]/60 transition-all duration-500 shadow-xl flex flex-col justify-between"
+              >
+                <div className="relative h-72 sm:h-80 overflow-hidden bg-[#0a0a0c]">
+                  <img
+                    src={imageAssets.pillars.academy}
+                    alt="Academy"
+                    className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#111115] via-transparent to-transparent opacity-80" />
                 </div>
-                <div className="pt-4 border-t border-[#22222a]">
-                  <Link
-                    to="/classes"
-                    className="inline-flex items-center text-sm sm:text-base tracking-[0.2em] text-[#c5a880] font-semibold uppercase group-hover:text-[#F7F6F2] transition-colors font-mono-tech"
-                  >
-                    <span>VIEW CLASSES</span>
-                    <span className="ml-2.5">→</span>
-                  </Link>
+                <div className="p-8 sm:p-10 space-y-4 flex-grow flex flex-col justify-between">
+                  <div>
+                    <h3 className="font-cinzel text-2xl sm:text-3xl text-[#F7F6F2] font-normal mb-2 group-hover:text-[#c5a880] transition-colors">
+                      CLASSES & ACADEMY
+                    </h3>
+                    <p className="text-base sm:text-lg text-[#d4d3cc] font-light">
+                      Learn drawing, painting and tattooing from master artists.
+                    </p>
+                  </div>
+                  <div className="pt-4 border-t border-[#22222a]">
+                    <span className="inline-flex items-center text-sm sm:text-base tracking-[0.2em] text-[#c5a880] font-semibold uppercase group-hover:text-[#F7F6F2] transition-colors font-mono-tech">
+                      <span>VIEW CLASSES</span>
+                      <span className="ml-2.5">→</span>
+                    </span>
+                  </div>
                 </div>
-              </div>
+              </CornerGlowContainer>
             </motion.div>
           </div>
         </div>
@@ -175,7 +187,7 @@ export default function HomePage() {
             </div>
             <Link
               to="/gallery"
-              className="inline-flex items-center justify-center px-8 py-4 text-sm sm:text-base tracking-[0.2em] font-semibold uppercase text-[#09090b] bg-[#c5a880] hover:bg-[#d4af37] transition-all whitespace-nowrap font-mono-tech shadow-lg"
+              className="inline-flex items-center justify-center px-8 py-4 text-sm sm:text-base tracking-[0.2em] font-semibold uppercase text-[#09090b] bg-[#c5a880] hover:bg-[#d4af37] transition-all whitespace-nowrap font-mono-tech shadow-lg cursor-pointer"
             >
               VIEW FULL GALLERY →
             </Link>
@@ -183,10 +195,11 @@ export default function HomePage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {selectedPreviewWorks.map((work) => (
-              <Link
+              <CornerGlowContainer
                 key={work.id}
-                to="/gallery"
-                className="group flex flex-col justify-between bg-[#111115] border border-[#22222a] hover:border-[#c5a880]/60 transition-all duration-500 overflow-hidden shadow-xl"
+                onClick={() => navigate(`/gallery?category=${work.category}`)}
+                dataCursor="view"
+                className="bg-[#111115] border border-[#22222a] hover:border-[#c5a880]/60 transition-all duration-500 shadow-xl flex flex-col justify-between"
               >
                 <div className="relative h-72 sm:h-80 overflow-hidden bg-[#0a0a0c]">
                   <img
@@ -195,6 +208,11 @@ export default function HomePage() {
                     className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
                     loading="lazy"
                   />
+                  <div className="absolute top-3 left-3">
+                    <span className="text-[10px] tracking-[0.2em] text-[#c5a880] uppercase bg-[#09090b]/90 px-2.5 py-1 border border-[#c5a880]/30 font-mono-tech">
+                      {work.categoryName || work.category}
+                    </span>
+                  </div>
                 </div>
                 <div className="p-6 space-y-2">
                   <h4 className="font-cinzel text-xl text-[#F7F6F2] font-normal group-hover:text-[#c5a880] transition-colors">
@@ -207,7 +225,7 @@ export default function HomePage() {
                     {work.fee || 'EXPLORE →'}
                   </span>
                 </div>
-              </Link>
+              </CornerGlowContainer>
             ))}
           </div>
         </div>
@@ -216,7 +234,10 @@ export default function HomePage() {
       {/* 5. SMALL CLASSES CTA BLOCK */}
       <section className="py-20 md:py-24 border-b border-[#22222a] bg-[#0c0c0f]">
         <div className="w-full max-w-[94vw] xl:max-w-[92vw] 2xl:max-w-[1880px] mx-auto px-4 sm:px-8 lg:px-12">
-          <div className="p-8 sm:p-12 md:p-16 bg-[#111115] border border-[#22222a] flex flex-col md:flex-row items-center justify-between gap-8">
+          <CornerGlowContainer
+            onClick={() => navigate('/classes')}
+            className="p-8 sm:p-12 md:p-16 bg-[#111115] border border-[#22222a] flex flex-col md:flex-row items-center justify-between gap-8"
+          >
             <div className="space-y-3 text-center md:text-left">
               <span className="text-xs tracking-[0.25em] text-[#c5a880] uppercase font-mono-tech font-semibold">
                 MS TATTOO & ART ACADEMY
@@ -230,11 +251,11 @@ export default function HomePage() {
             </div>
             <Link
               to="/classes"
-              className="inline-flex items-center justify-center px-8 py-4 text-sm sm:text-base tracking-[0.2em] font-semibold uppercase text-[#09090b] bg-[#c5a880] hover:bg-[#d4af37] transition-all whitespace-nowrap font-mono-tech shadow-lg"
+              className="inline-flex items-center justify-center px-8 py-4 text-sm sm:text-base tracking-[0.2em] font-semibold uppercase text-[#09090b] bg-[#c5a880] hover:bg-[#d4af37] transition-all whitespace-nowrap font-mono-tech shadow-lg shrink-0 cursor-pointer"
             >
               VIEW CLASSES →
             </Link>
-          </div>
+          </CornerGlowContainer>
         </div>
       </section>
 
@@ -242,53 +263,53 @@ export default function HomePage() {
       <section className="py-24 md:py-28 border-b border-[#22222a] bg-[#09090b]">
         <div className="w-full max-w-[94vw] xl:max-w-[92vw] 2xl:max-w-[1880px] mx-auto px-4 sm:px-8 lg:px-12">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-            {/* About Preview */}
-            <div className="p-8 sm:p-12 bg-[#111115] border border-[#22222a] space-y-6 flex flex-col justify-between">
+            {/* About Preview - Entire Card Clickable */}
+            <CornerGlowContainer
+              onClick={() => navigate('/about')}
+              className="p-8 sm:p-12 bg-[#111115] border border-[#22222a] space-y-6 flex flex-col justify-between"
+            >
               <div className="space-y-4">
                 <span className="text-xs tracking-[0.25em] text-[#c5a880] uppercase font-mono-tech font-semibold">
                   ABOUT THE ATELIER
                 </span>
-                <h3 className="font-cinzel text-3xl sm:text-4xl text-[#F7F6F2]">
+                <h3 className="font-cinzel text-3xl sm:text-4xl text-[#F7F6F2] group-hover:text-[#c5a880] transition-colors">
                   WHERE FINE ART MEETS TATTOO CRAFT
                 </h3>
                 <p className="text-base sm:text-lg text-[#d4d3cc] font-light leading-relaxed">
                   Our discipline began with classical graphite portraiture and anatomical studies, translating years of fine drawing expertise onto living skin.
                 </p>
               </div>
-              <div>
-                <Link
-                  to="/about"
-                  className="inline-flex items-center text-sm sm:text-base tracking-[0.2em] text-[#c5a880] font-semibold uppercase hover:text-[#F7F6F2] transition-colors font-mono-tech"
-                >
+              <div className="pt-4 border-t border-[#22222a]">
+                <span className="inline-flex items-center text-sm sm:text-base tracking-[0.2em] text-[#c5a880] font-semibold uppercase group-hover:text-[#F7F6F2] transition-colors font-mono-tech">
                   <span>READ ABOUT US</span>
                   <span className="ml-2.5">→</span>
-                </Link>
+                </span>
               </div>
-            </div>
+            </CornerGlowContainer>
 
-            {/* Contact Preview */}
-            <div className="p-8 sm:p-12 bg-[#111115] border border-[#22222a] space-y-6 flex flex-col justify-between">
+            {/* Contact Preview - Entire Card Clickable */}
+            <CornerGlowContainer
+              onClick={() => navigate('/contact')}
+              className="p-8 sm:p-12 bg-[#111115] border border-[#22222a] space-y-6 flex flex-col justify-between"
+            >
               <div className="space-y-4">
                 <span className="text-xs tracking-[0.25em] text-[#c5a880] uppercase font-mono-tech font-semibold">
                   CONSULTATIONS & BOOKING
                 </span>
-                <h3 className="font-cinzel text-3xl sm:text-4xl text-[#F7F6F2]">
+                <h3 className="font-cinzel text-3xl sm:text-4xl text-[#F7F6F2] group-hover:text-[#c5a880] transition-colors">
                   HAVE AN IDEA? LET'S TALK
                 </h3>
                 <p className="text-base sm:text-lg text-[#d4d3cc] font-light leading-relaxed">
                   Reach out directly via WhatsApp or phone to discuss your custom tattoo placement, portrait commission, or academy seat.
                 </p>
               </div>
-              <div>
-                <Link
-                  to="/contact"
-                  className="inline-flex items-center text-sm sm:text-base tracking-[0.2em] text-[#c5a880] font-semibold uppercase hover:text-[#F7F6F2] transition-colors font-mono-tech"
-                >
+              <div className="pt-4 border-t border-[#22222a]">
+                <span className="inline-flex items-center text-sm sm:text-base tracking-[0.2em] text-[#c5a880] font-semibold uppercase group-hover:text-[#F7F6F2] transition-colors font-mono-tech">
                   <span>GET IN TOUCH</span>
                   <span className="ml-2.5">→</span>
-                </Link>
+                </span>
               </div>
-            </div>
+            </CornerGlowContainer>
           </div>
         </div>
       </section>
